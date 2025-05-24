@@ -80,6 +80,7 @@ export default function App() {
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/favoritos" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
             <Route path="/mensajes" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+            <Route path="/mensajes/:id" element={<ProtectedRoute><Conversation /></ProtectedRoute>} />
             
             {/* Exploración de coches */}
             <Route path="/coches" element={<ExploreCars />} />
