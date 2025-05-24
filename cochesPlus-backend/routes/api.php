@@ -21,9 +21,8 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink']);
 Route::post('/reset-password', [PasswordResetController::class, 'reset']);
 
-// Ruta de autorización de broadcasting (DEBE estar antes de las rutas protegidas por auth)
 Route::post('/broadcasting/auth', [BroadcastingAuthController::class, 'authenticate'])
-    ->middleware('auth:sanctum');
+    ->middleware(['auth:sanctum']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

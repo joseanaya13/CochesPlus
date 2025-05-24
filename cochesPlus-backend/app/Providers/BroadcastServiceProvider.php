@@ -12,10 +12,7 @@ class BroadcastServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Configurar las rutas de broadcasting con middleware de autenticación
-        Broadcast::routes([
-            'middleware' => ['auth:sanctum']
-        ]);
+        // No usar Broadcast::routes() aquí porque ya tenemos las rutas en api.php
 
         require base_path('routes/channels.php');
     }
