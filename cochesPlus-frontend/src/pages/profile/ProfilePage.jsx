@@ -60,7 +60,7 @@ const ProfilePage = () => {
   const handlePasswordChange = async (data) => {
     try {
       setLoading(true);
-      await profileService.updatePassword(data);
+      await profileService.updatePassword(data); // Usar updatePassword en lugar de changePassword
       setSuccessMessage('Contraseña actualizada correctamente');
     } catch (err) {
       console.error('Error al cambiar contraseña:', err);

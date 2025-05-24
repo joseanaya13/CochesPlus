@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import Layout from '../../components/layout/Layout';
-import apiService from '../../services/apiService';
-import Spinner from '../../components/common/Spinner';
-import Alert from '../../components/common/Alert';
-import Button from '../../components/common/Button';
+import Layout from '../layout/Layout';
+import messageService from '../../services/messageService';
+import echo from '../../services/echoService';
+import { formatDate } from '../../utils/formatters';
+import Spinner from '../common/Spinner';
+import Alert from '../common/Alert';
+import Button from '../common/Button';
 
 const ConversationPage = () => {
     const { id } = useParams();
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [conversation, setConversation] = useState(null);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
@@ -19,17 +22,35 @@ const ConversationPage = () => {
     const messagesEndRef = useRef(null);
 
     useEffect(() => {
-        fetchConversation();
-        fetchMessages();
+        if (id) {
+            fetchConversation();
+            fetchMessages();
+        }
     }, [id]);
 
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
 
+    // Configurar escucha de mensajes en tiempo real
+    useEffect(() => {
+        if (!conversation) return;
+
+        const channel = echo.private(`conversacion.${conversation.id}`);
+
+        channel.listen('.message.sent', (e) => {
+            console.log('Nuevo mensaje recibido:', e);
+            setMessages(prevMensajes => [...prevMensajes, e]);
+        });
+
+        return () => {
+            echo.leave(`conversacion.${conversation.id}`);
+        };
+    }, [conversation]);
+
     const fetchConversation = async () => {
         try {
-            const data = await apiService.get(`/conversaciones/${id}`);
+            const data = await messageService.getConversacion(id);
             setConversation(data);
         } catch (err) {
             console.error('Error al cargar conversación:', err);
@@ -40,8 +61,11 @@ const ConversationPage = () => {
     const fetchMessages = async () => {
         try {
             setLoading(true);
-            const data = await apiService.get(`/conversaciones/${id}/mensajes`);
-            setMessages(data.data || data); // Handle pagination
+            const response = await messageService.getMensajes(id);
+            setMessages(response.data || response); // Handle pagination
+
+            // Marcar mensajes como leídos
+            await messageService.markAllAsRead(id);
         } catch (err) {
             console.error('Error al cargar mensajes:', err);
             setError('No se pudieron cargar los mensajes');
@@ -56,9 +80,7 @@ const ConversationPage = () => {
 
         try {
             setSendingMessage(true);
-            const response = await apiService.post(`/conversaciones/${id}/mensajes`, {
-                contenido: newMessage.trim()
-            });
+            const response = await messageService.sendMensaje(id, newMessage.trim());
 
             setMessages(prev => [...prev, response]);
             setNewMessage('');
@@ -180,7 +202,7 @@ const ConversationPage = () => {
                     ) : messages.length === 0 ? (
                         <div className="text-center py-8">
                             <p className="text-text-secondary dark:text-text-secondary">
-                                No hay mensajes en esta conversación
+                                No hay mensajes en esta conversación. ¡Envía el primero!
                             </p>
                         </div>
                     ) : (
@@ -191,14 +213,14 @@ const ConversationPage = () => {
                             >
                                 <div
                                     className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.id_remitente === user?.id
-                                            ? 'bg-primary text-text-light'
-                                            : 'bg-secondary-light dark:bg-secondary-dark text-text-dark dark:text-text-light'
+                                        ? 'bg-primary text-text-light'
+                                        : 'bg-secondary-light dark:bg-secondary-dark text-text-dark dark:text-text-light'
                                         }`}
                                 >
                                     <p className="text-sm">{message.contenido}</p>
                                     <p className={`text-xs mt-1 ${message.id_remitente === user?.id
-                                            ? 'text-text-light/70'
-                                            : 'text-text-secondary dark:text-text-secondary'
+                                        ? 'text-text-light/70'
+                                        : 'text-text-secondary dark:text-text-secondary'
                                         }`}>
                                         {formatMessageTime(message.created_at)}
                                     </p>

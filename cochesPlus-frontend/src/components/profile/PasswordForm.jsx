@@ -53,6 +53,7 @@ const PasswordForm = ({ onSubmit, loading }) => {
         if (validate()) {
             onSubmit(formData);
 
+            // Limpiar formulario tras envío exitoso
             setFormData({
                 current_password: '',
                 password: '',

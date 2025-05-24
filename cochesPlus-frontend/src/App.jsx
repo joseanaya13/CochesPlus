@@ -27,7 +27,7 @@ import TermsOfService from './pages/public/TermsOfService';
 // import UserManagement from './pages/dashboard/UserManagement';
 // import CarApprovals from './pages/dashboard/CarApprovals';
 import Messages from './pages/messages/Messages';
-// import Conversation from './pages/messaging/Conversation';
+import ConversationPage from './components/messages/ConversationPage'; // Importar el componente correcto
 
 import EditCar from './pages/seller/EditCar';
 import NewCar from './pages/seller/NewCar';
@@ -79,9 +79,11 @@ export default function App() {
             {/* Rutas de perfil */}
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/favoritos" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
+
+            {/* Rutas de mensajes - CORREGIDAS */}
             <Route path="/mensajes" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-            <Route path="/mensajes/:id" element={<ProtectedRoute><Conversation /></ProtectedRoute>} />
-            
+            <Route path="/mensajes/:id" element={<ProtectedRoute><ConversationPage /></ProtectedRoute>} />
+
             {/* Exploración de coches */}
             <Route path="/coches" element={<ExploreCars />} />
             <Route path="/coches/:id" element={<CarDetail />} />

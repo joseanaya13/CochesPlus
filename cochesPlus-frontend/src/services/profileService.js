@@ -32,14 +32,21 @@ const profileService = {
      * Cambia la contraseña del usuario
      * @param {Object} passwordData - Datos para cambiar la contraseña
      */
-    changePassword: async (passwordData) => {
+    updatePassword: async (passwordData) => {
         try {
-            const response = await apiService.post('/profile/password', passwordData);
+            const response = await apiService.put('/profile/password', passwordData);
             return response;
         } catch (error) {
             console.error('Error al cambiar contraseña:', error);
             throw error;
         }
+    },
+
+    /**
+     * Alias para updatePassword (por compatibilidad)
+     */
+    changePassword: async (passwordData) => {
+        return profileService.updatePassword(passwordData);
     }
 };
 

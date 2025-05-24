@@ -5,8 +5,8 @@ import apiService from '../../services/apiService';
 import Spinner from '../common/Spinner';
 import Alert from '../common/Alert';
 
-const ConversationsList = () => {
-    const { user } = useAuth(); 
+const ConversationsList = ({ onSelectConversation, selectedConversacionId }) => {
+    const { user } = useAuth();
     const [conversations, setConversations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -74,6 +74,19 @@ const ConversationsList = () => {
         );
     };
 
+    // Función para manejar el click en una conversación
+    const handleConversationClick = (conversation, e) => {
+        e.preventDefault();
+
+        // Si estamos en vista móvil o si hay una función de selección, usar esa
+        if (onSelectConversation) {
+            onSelectConversation(conversation);
+        } else {
+            // En caso contrario, navegar a la página de conversación individual
+            window.location.href = `/mensajes/${conversation.id}`;
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -116,17 +129,20 @@ const ConversationsList = () => {
                 const otherUser = getOtherUser(conversation);
                 const lastMessage = getLastMessage(conversation);
                 const unread = hasUnreadMessages(conversation);
+                const isSelected = selectedConversacionId === conversation.id;
                 const lastMessageTime = conversation.mensajes && conversation.mensajes.length > 0
                     ? conversation.mensajes[0].created_at
                     : conversation.updated_at;
 
                 return (
-                    <Link
+                    <div
                         key={conversation.id}
-                        to={`/mensajes/${conversation.id}`}
-                        className={`block p-4 rounded-lg border transition-colors hover:bg-secondary-light dark:hover:bg-secondary-dark ${unread
-                                ? 'bg-primary/10 border-primary/30 dark:bg-primary/20 dark:border-primary/40'
-                                : 'bg-background-light dark:bg-primary-dark border-secondary-light dark:border-secondary-dark'
+                        onClick={(e) => handleConversationClick(conversation, e)}
+                        className={`block p-4 rounded-lg border transition-colors cursor-pointer hover:bg-secondary-light dark:hover:bg-secondary-dark ${isSelected
+                                ? 'bg-primary/20 border-primary/40 dark:bg-primary/30 dark:border-primary/50'
+                                : unread
+                                    ? 'bg-primary/10 border-primary/30 dark:bg-primary/20 dark:border-primary/40'
+                                    : 'bg-background-light dark:bg-primary-dark border-secondary-light dark:border-secondary-dark'
                             }`}
                     >
                         <div className="flex items-start space-x-3">
@@ -143,8 +159,8 @@ const ConversationsList = () => {
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
                                     <h3 className={`text-sm font-medium truncate ${unread
-                                            ? 'text-text-dark dark:text-text-light'
-                                            : 'text-text-dark dark:text-text-light'
+                                        ? 'text-text-dark dark:text-text-light'
+                                        : 'text-text-dark dark:text-text-light'
                                         }`}>
                                         {otherUser?.nombre || 'Usuario'}
                                     </h3>
@@ -168,8 +184,8 @@ const ConversationsList = () => {
 
                                 {/* Último mensaje */}
                                 <p className={`text-sm truncate ${unread
-                                        ? 'text-text-dark dark:text-text-light font-medium'
-                                        : 'text-text-secondary dark:text-text-secondary'
+                                    ? 'text-text-dark dark:text-text-light font-medium'
+                                    : 'text-text-secondary dark:text-text-secondary'
                                     }`}>
                                     {lastMessage}
                                 </p>
@@ -182,10 +198,11 @@ const ConversationsList = () => {
                                 </div>
                             )}
                         </div>
-                    </Link>
+                    </div>
                 );
             })}
         </div>
     );
 };
+
 export default ConversationsList;
