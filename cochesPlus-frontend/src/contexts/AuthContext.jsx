@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
 import authService from '../services/authService';
+import { reconnectEcho, disconnectEcho } from '../services/echoService';
 
 const AuthContext = createContext(null);
 
@@ -23,6 +24,10 @@ export const AuthProvider = ({ children }) => {
                 const storedUser = authService.getCurrentUser();
                 if (storedUser) {
                     setUser(storedUser);
+                    // Reconectar Echo después de cargar el usuario
+                    setTimeout(() => {
+                        reconnectEcho();
+                    }, 100);
                 }
             } catch (err) {
                 console.error('Error al cargar usuario:', err);
@@ -41,6 +46,12 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await authService.register(userData);
             setUser(response.user);
+
+            // Conectar Echo después del registro
+            setTimeout(() => {
+                reconnectEcho();
+            }, 100);
+
             return response;
         } catch (err) {
             setError(err.message || 'Error al registrar usuario');
@@ -56,6 +67,12 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await authService.login(credentials);
             setUser(response.user);
+
+            // Conectar Echo después del login
+            setTimeout(() => {
+                reconnectEcho();
+            }, 100);
+
             return response;
         } catch (err) {
             setError(err.message || 'Error al iniciar sesión');
@@ -69,6 +86,9 @@ export const AuthProvider = ({ children }) => {
         setLoading(true);
         setError(null);
         try {
+            // Desconectar Echo antes del logout
+            disconnectEcho();
+
             await authService.logout();
             setUser(null);
         } catch (err) {

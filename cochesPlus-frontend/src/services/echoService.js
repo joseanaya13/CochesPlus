@@ -1,94 +1,71 @@
+// cochesPlus-frontend/src/services/echoService.js
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
 // Configurar Pusher
 window.Pusher = Pusher;
 
-// Función para obtener el token de autenticación
-const getAuthToken = () => {
+let echoInstance = null;
+
+const createEchoInstance = () => {
     const token = localStorage.getItem('token');
-    return token ? `Bearer ${token}` : null;
-};
 
-// Configuración de Echo
-const echoConfig = {
-    broadcaster: 'pusher',
-    key: import.meta.env.VITE_PUSHER_APP_KEY,
-    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER || 'eu',
-    forceTLS: true,
-    encrypted: true,
-    enabledTransports: ['ws', 'wss'],
-    auth: {
-        headers: {
-            Authorization: getAuthToken(),
-            Accept: 'application/json',
+    if (!token) {
+        console.warn('No hay token disponible para Echo');
+        return null;
+    }
+
+    return new Echo({
+        broadcaster: 'pusher',
+        key: import.meta.env.VITE_PUSHER_APP_KEY,
+        cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER || 'eu',
+        forceTLS: true,
+        encrypted: true,
+        enabledTransports: ['ws', 'wss'],
+        auth: {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: 'application/json',
+            },
         },
-    },
-    authEndpoint: import.meta.env.PROD
-        ? 'https://josefa25.iesmontenaranco.com:8000/api/broadcasting/auth'
-        : 'http://localhost:8000/api/broadcasting/auth',
-    // Configuración adicional para manejo de errores
-    enableStats: false,
-    enableLogging: import.meta.env.DEV,
+        authEndpoint: import.meta.env.PROD
+            ? 'https://josefa25.iesmontenaranco.com:8000/api/broadcasting/auth'
+            : 'http://localhost:8000/api/broadcasting/auth',
+    });
 };
 
-// Crear instancia de Echo con manejo de errores
-let echo;
-
-try {
-    echo = new Echo(echoConfig);
-
-    // Manejo de eventos de conexión para debugging
-    if (import.meta.env.DEV) {
-        // Eventos de Pusher para debugging
-        echo.connector.pusher.connection.bind('connected', () => {
-            console.log('Echo: Conectado a Pusher');
-        });
-
-        echo.connector.pusher.connection.bind('disconnected', () => {
-            console.log('Echo: Desconectado de Pusher');
-        });
-
-        echo.connector.pusher.connection.bind('error', (error) => {
-            console.error('Echo: Error de conexión:', error);
-        });
-
-        echo.connector.pusher.connection.bind('failed', () => {
-            console.error('Echo: Falló la conexión a Pusher');
-        });
+// Función para obtener la instancia de Echo
+const getEcho = () => {
+    if (!echoInstance) {
+        echoInstance = createEchoInstance();
     }
+    return echoInstance;
+};
 
-    // Función para actualizar el token de autorización
-    echo.updateAuthToken = () => {
-        const newToken = getAuthToken();
-        if (newToken) {
-            echo.options.auth.headers.Authorization = newToken;
-        }
-    };
+// Función para reconectar Echo (útil después del login)
+const reconnectEcho = () => {
+    if (echoInstance) {
+        echoInstance.disconnect();
+    }
+    echoInstance = createEchoInstance();
+    return echoInstance;
+};
 
-} catch (error) {
-    console.error('Error al inicializar Echo:', error);
-
-    // Crear un objeto mock de Echo para evitar errores en el resto de la aplicación
-    echo = {
-        private: () => ({
-            listen: () => ({}),
-            leave: () => ({})
-        }),
-        leave: () => ({}),
-        updateAuthToken: () => ({})
-    };
-}
-
-// Interceptar cambios en el token de localStorage para actualizar Echo
-const originalSetItem = localStorage.setItem;
-localStorage.setItem = function (key, value) {
-    originalSetItem.apply(this, arguments);
-
-    // Si se actualiza el token, actualizar también en Echo
-    if (key === 'token' && echo.updateAuthToken) {
-        echo.updateAuthToken();
+// Función para desconectar Echo
+const disconnectEcho = () => {
+    if (echoInstance) {
+        echoInstance.disconnect();
+        echoInstance = null;
     }
 };
 
-export default echo;
+export { getEcho, reconnectEcho, disconnectEcho };
+export default {
+    getEcho,
+    reconnectEcho,
+    disconnectEcho,
+    // Métodos de conveniencia para mantener compatibilidad
+    private: (channel) => getEcho()?.private(channel),
+    leave: (channel) => getEcho()?.leave(channel),
+    channel: (channel) => getEcho()?.channel(channel),
+};

@@ -1,42 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
+import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import messageService from '../../services/messageService';
 import Spinner from '../common/Spinner';
 import Alert from '../common/Alert';
+import PropTypes from 'prop-types';
 
-const ConversationsList = ({ onSelectConversation, selectedConversacionId }) => {
+const ConversationsList = ({
+    conversaciones = [],
+    onSelectConversation,
+    selectedConversacionId,
+    loading = false,
+    error = null
+}) => {
     const { user } = useAuth();
-    const [conversations, setConversations] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
 
-    useEffect(() => {
-        fetchConversations();
-    }, []);
-
-    const fetchConversations = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const data = await messageService.getConversaciones();
-            setConversations(data);
-        } catch (err) {
-            console.error('Error al cargar conversaciones:', err);
-            setError('No se pudieron cargar las conversaciones');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const formatConversationTime = (dateString) => {
+    const formatDate = (dateString) => {
         const date = new Date(dateString);
         const now = new Date();
         const diffInHours = (now - date) / (1000 * 60 * 60);
 
-        if (diffInHours < 1) {
-            return 'Ahora';
-        } else if (diffInHours < 24) {
+        if (diffInHours < 24) {
             return date.toLocaleTimeString('es-ES', {
                 hour: '2-digit',
                 minute: '2-digit'
@@ -64,14 +46,7 @@ const ConversationsList = ({ onSelectConversation, selectedConversacionId }) => 
         if (!conversation.mensajes || conversation.mensajes.length === 0) {
             return 'Sin mensajes';
         }
-        const lastMessage = conversation.mensajes[0];
-        const isOwnMessage = lastMessage.id_remitente === user?.id;
-        const prefix = isOwnMessage ? 'Tú: ' : '';
-        const content = lastMessage.contenido.length > 40
-            ? `${lastMessage.contenido.substring(0, 40)}...`
-            : lastMessage.contenido;
-
-        return `${prefix}${content}`;
+        return conversation.mensajes[0].contenido;
     };
 
     const hasUnreadMessages = (conversation) => {
@@ -87,10 +62,7 @@ const ConversationsList = ({ onSelectConversation, selectedConversacionId }) => 
     if (loading) {
         return (
             <div className="flex justify-center items-center h-64">
-                <div className="flex flex-col items-center">
-                    <Spinner variant="page" />
-                    <p className="text-text-secondary mt-2 text-sm">Cargando conversaciones...</p>
-                </div>
+                <Spinner variant="page" />
             </div>
         );
     }
@@ -101,19 +73,13 @@ const ConversationsList = ({ onSelectConversation, selectedConversacionId }) => 
                 <Alert
                     type="error"
                     message={error}
-                    onClose={() => setError(null)}
+                    onClose={() => { }}
                 />
-                <button
-                    onClick={fetchConversations}
-                    className="mt-3 text-primary hover:text-primary-dark text-sm font-medium"
-                >
-                    Intentar de nuevo
-                </button>
             </div>
         );
     }
 
-    if (conversations.length === 0) {
+    if (conversaciones.length === 0) {
         return (
             <div className="text-center py-8 px-4">
                 <div className="mb-4">
@@ -132,33 +98,38 @@ const ConversationsList = ({ onSelectConversation, selectedConversacionId }) => 
     }
 
     return (
-        <div className="space-y-2">
-            {conversations.map((conversation) => {
+        <div className="space-y-1 p-2">
+            {conversaciones.map((conversation) => {
                 const otherUser = getOtherUser(conversation);
                 const lastMessage = getLastMessage(conversation);
                 const unread = hasUnreadMessages(conversation);
+                const isSelected = selectedConversacionId === conversation.id;
                 const lastMessageTime = conversation.mensajes && conversation.mensajes.length > 0
                     ? conversation.mensajes[0].created_at
                     : conversation.updated_at;
-
-                const isSelected = selectedConversacionId === conversation.id;
 
                 return (
                     <button
                         key={conversation.id}
                         onClick={() => onSelectConversation(conversation)}
-                        className={`w-full text-left p-4 rounded-lg border transition-colors hover:bg-secondary-light dark:hover:bg-secondary-dark ${isSelected
-                                ? 'bg-primary/10 border-primary/50 dark:bg-primary/20 dark:border-primary/60'
+                        className={`w-full text-left p-3 rounded-lg border transition-all duration-200 hover:shadow-md ${isSelected
+                                ? 'bg-primary/20 border-primary/50 dark:bg-primary/30 dark:border-primary/40'
                                 : unread
-                                    ? 'bg-primary/5 border-primary/30 dark:bg-primary/10 dark:border-primary/40'
-                                    : 'bg-background-light dark:bg-primary-dark border-secondary-light dark:border-secondary-dark'
+                                    ? 'bg-primary/5 border-primary/20 dark:bg-primary/10 dark:border-primary/30 hover:bg-primary/10'
+                                    : 'bg-background-light dark:bg-primary-dark border-secondary-light dark:border-secondary-dark hover:bg-secondary-light dark:hover:bg-secondary-dark'
                             }`}
                     >
                         <div className="flex items-start space-x-3">
                             {/* Avatar */}
                             <div className="flex-shrink-0">
-                                <div className="w-12 h-12 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
-                                    <span className="text-sm font-medium text-primary dark:text-primary-light">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isSelected
+                                        ? 'bg-primary/30 dark:bg-primary/40'
+                                        : 'bg-primary/10 dark:bg-primary/20'
+                                    }`}>
+                                    <span className={`text-sm font-medium ${isSelected
+                                            ? 'text-primary-dark dark:text-primary-light'
+                                            : 'text-primary dark:text-primary-light'
+                                        }`}>
                                         {otherUser?.nombre?.charAt(0).toUpperCase() || 'U'}
                                     </span>
                                 </div>
@@ -173,9 +144,30 @@ const ConversationsList = ({ onSelectConversation, selectedConversacionId }) => 
                                         }`}>
                                         {otherUser?.nombre || 'Usuario'}
                                     </h3>
-                                    <span className="text-xs text-text-secondary dark:text-text-secondary flex-shrink-0 ml-2">
-                                        {formatConversationTime(lastMessageTime)}
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-xs text-text-secondary dark:text-text-secondary">
+                                            {formatDate(lastMessageTime)}
+                                        </span>
+                                        {unread && (
+                                            <div className="w-2 h-2 bg-primary rounded-full"></div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Información del coche */}
+                                <div className="text-xs text-text-secondary dark:text-text-secondary mb-1">
+                                    <span className="truncate">
+                                        {conversation.coche?.marca?.nombre} {conversation.coche?.modelo?.nombre}
                                     </span>
+                                    {conversation.coche?.precio && (
+                                        <span className="ml-2 font-medium text-primary">
+                                            {new Intl.NumberFormat('es-ES', {
+                                                style: 'currency',
+                                                currency: 'EUR',
+                                                maximumFractionDigits: 0
+                                            }).format(conversation.coche.precio)}
+                                        </span>
+                                    )}
                                 </div>
 
                                 {/* Último mensaje */}
@@ -186,13 +178,6 @@ const ConversationsList = ({ onSelectConversation, selectedConversacionId }) => 
                                     {lastMessage}
                                 </p>
                             </div>
-
-                            {/* Indicador de no leído */}
-                            {unread && (
-                                <div className="flex-shrink-0 flex items-center">
-                                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                                </div>
-                            )}
                         </div>
                     </button>
                 );
@@ -202,8 +187,11 @@ const ConversationsList = ({ onSelectConversation, selectedConversacionId }) => 
 };
 
 ConversationsList.propTypes = {
+    conversaciones: PropTypes.array,
     onSelectConversation: PropTypes.func.isRequired,
-    selectedConversacionId: PropTypes.number
+    selectedConversacionId: PropTypes.number,
+    loading: PropTypes.bool,
+    error: PropTypes.string
 };
 
 export default ConversationsList;

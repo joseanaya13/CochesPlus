@@ -2,40 +2,120 @@ import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { useAuth } from '../../contexts/AuthContext';
 import messageService from '../../services/messageService';
-import echo from '../../services/echoService';
+import { getEcho } from '../../services/echoService';
 import { formatDate } from '../../utils/formatters';
 import Button from '../common/Button';
 import Spinner from '../common/Spinner';
 
-const ChatWindow = ({ conversacion }) => {
+const ChatWindow = ({ conversacion, onNewMessage }) => {
     const { user } = useAuth();
     const [mensajes, setMensajes] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
+    const [isConnected, setIsConnected] = useState(false);
     const messagesEndRef = useRef(null);
+    const echoChannelRef = useRef(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
 
     useEffect(() => {
         if (conversacion) {
             loadMensajes();
+            scrollToBottom();
+            setupRealtimeConnection();
         }
-    }, [conversacion]);
 
-    // Configurar escucha de mensajes en tiempo real
-    useEffect(() => {
-        if (!conversacion) return;
-
-        const channel = echo.private(`conversacion.${conversacion.id}`);
-
-        channel.listen('.message.sent', (e) => {
-            console.log('Nuevo mensaje recibido:', e);
-            setMensajes(prevMensajes => [...prevMensajes, e]);
-        });
-
+        // Cleanup function
         return () => {
-            echo.leave(`conversacion.${conversacion.id}`);
+            cleanupRealtimeConnection();
         };
     }, [conversacion]);
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [mensajes]);
+
+    const setupRealtimeConnection = () => {
+        if (!conversacion) return;
+
+        try {
+            const echo = getEcho();
+            if (!echo) {
+                console.warn('Echo no está disponible');
+                return;
+            }
+
+            // Limpiar conexión anterior si existe
+            cleanupRealtimeConnection();
+
+            console.log(`Conectando al canal: conversacion.${conversacion.id}`);
+
+            const channel = echo.private(`conversacion.${conversacion.id}`);
+            echoChannelRef.current = channel;
+
+            channel.listen('.message.sent', (data) => {
+                console.log('Nuevo mensaje recibido en tiempo real:', data);
+
+                // Solo agregar el mensaje si no es del usuario actual
+                if (data.id_remitente !== user?.id) {
+                    setMensajes(prevMensajes => {
+                        // Evitar duplicados
+                        const existingMessage = prevMensajes.find(m => m.id === data.id);
+                        if (existingMessage) {
+                            return prevMensajes;
+                        }
+
+                        const newMensajes = [...prevMensajes, data];
+
+                        // Notificar al componente padre si hay callback
+                        if (onNewMessage) {
+                            onNewMessage(data);
+                        }
+
+                        return newMensajes;
+                    });
+
+                    // Marcar como leído automáticamente
+                    setTimeout(() => {
+                        messageService.markAsRead(conversacion.id, data.id).catch(console.error);
+                    }, 1000);
+                }
+            });
+
+            channel.subscribed(() => {
+                console.log('Suscrito exitosamente al canal de conversación');
+                setIsConnected(true);
+            });
+
+            channel.error((error) => {
+                console.error('Error en el canal de Echo:', error);
+                setIsConnected(false);
+            });
+
+        } catch (error) {
+            console.error('Error al configurar conexión en tiempo real:', error);
+            setIsConnected(false);
+        }
+    };
+
+    const cleanupRealtimeConnection = () => {
+        if (echoChannelRef.current) {
+            try {
+                const echo = getEcho();
+                if (echo) {
+                    echo.leave(`conversacion.${conversacion?.id}`);
+                }
+                echoChannelRef.current = null;
+                setIsConnected(false);
+                console.log('Canal de Echo desconectado');
+            } catch (error) {
+                console.error('Error al limpiar conexión:', error);
+            }
+        }
+    };
 
     const loadMensajes = async () => {
         if (!conversacion) return;
@@ -59,15 +139,27 @@ const ChatWindow = ({ conversacion }) => {
 
         if (!newMessage.trim() || sending) return;
 
+        const messageContent = newMessage.trim();
+        setNewMessage(''); // Limpiar input inmediatamente para mejor UX
+
         try {
             setSending(true);
-            const mensaje = await messageService.sendMensaje(conversacion.id, newMessage);
+            const mensaje = await messageService.sendMensaje(conversacion.id, messageContent);
 
             // Agregar el mensaje enviado localmente
-            setMensajes(prevMensajes => [...prevMensajes, mensaje]);
-            setNewMessage('');
+            setMensajes(prevMensajes => {
+                // Evitar duplicados
+                const existingMessage = prevMensajes.find(m => m.id === mensaje.id);
+                if (existingMessage) {
+                    return prevMensajes;
+                }
+                return [...prevMensajes, mensaje];
+            });
+
         } catch (error) {
             console.error('Error al enviar mensaje:', error);
+            // Restaurar el mensaje en caso de error
+            setNewMessage(messageContent);
         } finally {
             setSending(false);
         }
@@ -96,25 +188,38 @@ const ChatWindow = ({ conversacion }) => {
         : conversacion.comprador;
 
     return (
-        <div className="flex-1 flex flex-col bg-background-light dark:bg-primary-dark h-full">
+        <div className="flex-1 flex flex-col bg-background-light dark:bg-primary-dark">
             {/* Header del chat */}
-            <div className="bg-white dark:bg-secondary-dark border-b border-secondary-light dark:border-secondary-dark p-4 flex-shrink-0">
-                <div className="flex items-center space-x-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-sm font-medium text-primary">
-                            {otherUser.nombre.charAt(0).toUpperCase()}
-                        </span>
+            <div className="bg-white dark:bg-secondary-dark border-b border-secondary-light dark:border-secondary-dark p-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <span className="text-sm font-medium text-primary">
+                                {otherUser.nombre.charAt(0).toUpperCase()}
+                            </span>
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-medium text-text-dark dark:text-text-light">
+                                {otherUser.nombre}
+                            </h3>
+                            <p className="text-sm text-text-secondary">
+                                {conversacion.coche.marca.nombre} {conversacion.coche.modelo.nombre}
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="text-lg font-medium text-text-dark dark:text-text-light">
-                            {otherUser.nombre}
-                        </h3>
+
+                    {/* Indicador de conexión */}
+                    <div className="flex items-center space-x-2">
+                        <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-success' : 'bg-error'}`}></div>
+                        <span className="text-xs text-text-secondary">
+                            {isConnected ? 'Conectado' : 'Desconectado'}
+                        </span>
                     </div>
                 </div>
             </div>
 
-            {/* Área de mensajes - ocupa todo el espacio disponible */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
+            {/* Área de mensajes */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {loading ? (
                     <div className="flex justify-center">
                         <Spinner />
@@ -144,6 +249,9 @@ const ChatWindow = ({ conversacion }) => {
                                         : 'text-text-secondary'
                                         }`}>
                                         {formatDate(mensaje.created_at)}
+                                        {!mensaje.leido && !isOwn && (
+                                            <span className="ml-2">📩</span>
+                                        )}
                                     </p>
                                 </div>
                             </div>
@@ -153,8 +261,8 @@ const ChatWindow = ({ conversacion }) => {
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Input para nuevo mensaje - siempre fijo en la parte inferior */}
-            <div className="border-t border-secondary-light dark:border-secondary-dark m-4 p-2 bg-white dark:bg-secondary-dark flex-shrink-0">
+            {/* Input para nuevo mensaje */}
+            <div className="border-t border-secondary-light dark:border-secondary-dark p-4">
                 <form onSubmit={handleSendMessage} className="flex space-x-2">
                     <input
                         type="text"
@@ -163,29 +271,43 @@ const ChatWindow = ({ conversacion }) => {
                         placeholder="Escribe un mensaje..."
                         className="flex-1 px-4 py-2 border border-secondary-light dark:border-secondary-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-secondary-dark text-text-dark dark:text-text-light"
                         disabled={sending}
+                        maxLength={1000}
                     />
                     <Button
                         type="submit"
                         disabled={!newMessage.trim() || sending}
                         isLoading={sending}
-                        className="px-4 py-2 flex-shrink-0"
+                        className="px-4 py-2"
                     >
                         {sending ? (
                             <Spinner />
                         ) : (
-                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                             </svg>
                         )}
                     </Button>
                 </form>
+
+                {/* Indicador de estado */}
+                <div className="flex justify-between items-center mt-2">
+                    <span className="text-xs text-text-secondary">
+                        {newMessage.length}/1000
+                    </span>
+                    {!isConnected && (
+                        <span className="text-xs text-warning">
+                            Conexión perdida - Los mensajes pueden no llegar en tiempo real
+                        </span>
+                    )}
+                </div>
             </div>
         </div>
     );
 };
 
 ChatWindow.propTypes = {
-    conversacion: PropTypes.object
+    conversacion: PropTypes.object,
+    onNewMessage: PropTypes.func
 };
 
 export default ChatWindow;
