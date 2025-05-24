@@ -17,7 +17,14 @@ const ChatWindow = ({ conversacion }) => {
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        // Usar requestAnimationFrame para evitar problemas de scroll
+        requestAnimationFrame(() => {
+            messagesEndRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "end",
+                inline: "nearest"
+            });
+        });
     };
 
     useEffect(() => {
@@ -28,7 +35,12 @@ const ChatWindow = ({ conversacion }) => {
     }, [conversacion]);
 
     useEffect(() => {
-        scrollToBottom();
+        if (conversacion && mensajes.length > 0) {
+            // Delay el scroll para asegurar que el DOM esté actualizado
+            setTimeout(() => {
+                scrollToBottom();
+            }, 100);
+        }
     }, [mensajes]);
 
     // Configurar escucha de mensajes en tiempo real
@@ -127,9 +139,9 @@ const ChatWindow = ({ conversacion }) => {
     };
 
     return (
-        <div className="flex-1 flex flex-col bg-background-light dark:bg-primary-dark">
+        <div className="flex-1 flex flex-col bg-background-light dark:bg-primary-dark p-2">
             {/* Header del chat */}
-            <div className="bg-white dark:bg-secondary-dark border-b border-secondary-light dark:border-secondary-dark p-4">
+            <div className="bg-white dark:bg-secondary-dark border-b border-secondary-light dark:border-secondary-dark p-3">
                 <div className="flex items-center space-x-3">
                     <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                         <span className="text-sm font-medium text-primary">
@@ -140,34 +152,21 @@ const ChatWindow = ({ conversacion }) => {
                         <h3 className="text-lg font-medium text-text-dark dark:text-text-light">
                             {otherUser.nombre}
                         </h3>
-                        <div className="flex items-center text-sm text-text-secondary">
-                            <span>{conversacion.coche.marca.nombre} {conversacion.coche.modelo.nombre}</span>
-                            <span className="mx-2">•</span>
-                            <span className="font-medium text-primary">
-                                {formatPrice(conversacion.coche.precio)}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Estado de conexión */}
-                    <div className="flex items-center text-xs text-text-secondary">
-                        <div className="w-2 h-2 bg-success rounded-full mr-2"></div>
-                        <span>En línea</span>
                     </div>
                 </div>
             </div>
 
             {/* Área de mensajes */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 flex-col justify-end overflow-y-auto p-4 space-y-4 min-h-0">
                 {loading ? (
-                    <div className="flex justify-center items-center h-full">
+                    <div className="flex justify-center items-center h-full min-h-[200px]">
                         <div className="flex flex-col items-center">
                             <Spinner variant="page" />
                             <p className="text-text-secondary mt-2">Cargando mensajes...</p>
                         </div>
                     </div>
                 ) : loadingError ? (
-                    <div className="flex justify-center items-center h-full">
+                    <div className="flex justify-center items-center h-full min-h-[200px]">
                         <div className="text-center">
                             <svg className="mx-auto h-12 w-12 text-error mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -191,117 +190,120 @@ const ChatWindow = ({ conversacion }) => {
                         </p>
                     </div>
                 ) : (
-                    mensajes.map((mensaje) => {
-                        const isOwn = mensaje.id_remitente === user?.id;
-                        const senderName = isOwn ? 'Tú' : (mensaje.remitente?.nombre || otherUser.nombre);
+                    <div className="space-y-4">
+                        {mensajes.map((mensaje) => {
+                            const isOwn = mensaje.id_remitente === user?.id;
+                            const senderName = isOwn ? 'Tú' : (mensaje.remitente?.nombre || otherUser.nombre);
 
-                        return (
-                            <div
-                                key={mensaje.id}
-                                className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4`}
-                            >
-                                <div className={`max-w-xs lg:max-w-md ${isOwn ? 'order-2' : 'order-1'}`}>
-                                    {/* Avatar y nombre del remitente */}
-                                    <div className={`flex items-center mb-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                                        {!isOwn && (
-                                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mr-2">
-                                                <span className="text-xs font-medium text-primary">
-                                                    {senderName.charAt(0).toUpperCase()}
-                                                </span>
-                                            </div>
-                                        )}
-                                        <span className={`text-xs font-medium ${isOwn
+                            return (
+                                <div
+                                    key={mensaje.id}
+                                    className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                                >
+                                    <div className={`max-w-xs lg:max-w-md ${isOwn ? 'order-2' : 'order-1'}`}>
+                                        {/* Avatar y nombre del remitente */}
+                                        <div className={`flex items-center mb-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                                            {!isOwn && (
+                                                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mr-2">
+                                                    <span className="text-xs font-medium text-primary">
+                                                        {senderName.charAt(0).toUpperCase()}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <span className={`text-xs font-medium ${isOwn
                                                 ? 'text-primary'
                                                 : 'text-text-secondary dark:text-text-secondary'
-                                            }`}>
-                                            {senderName}
-                                        </span>
-                                        {isOwn && (
-                                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center ml-2">
-                                                <span className="text-xs font-medium text-primary">
-                                                    {senderName.charAt(0).toUpperCase()}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Burbuja del mensaje */}
-                                    <div className={`px-4 py-2 rounded-lg ${isOwn
-                                        ? 'bg-primary text-white rounded-br-sm'
-                                        : 'bg-secondary-light dark:bg-secondary-dark text-text-dark dark:text-text-light rounded-bl-sm'
-                                        }`}>
-                                        <p className="text-sm">{mensaje.contenido}</p>
-                                        <div className={`flex items-center justify-between mt-1`}>
-                                            <p className={`text-xs ${isOwn
-                                                ? 'text-white/70'
-                                                : 'text-text-secondary'
                                                 }`}>
-                                                {formatMessageTime(mensaje.created_at)}
-                                            </p>
-
-                                            {/* Estado del mensaje para mensajes propios */}
+                                                {senderName}
+                                            </span>
                                             {isOwn && (
-                                                <div className="ml-2">
-                                                    {mensaje.leido ? (
-                                                        <svg className="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                        </svg>
-                                                    ) : (
-                                                        <svg className="w-4 h-4 text-white/50" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                        </svg>
-                                                    )}
+                                                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center ml-2">
+                                                    <span className="text-xs font-medium text-primary">
+                                                        {senderName.charAt(0).toUpperCase()}
+                                                    </span>
                                                 </div>
                                             )}
                                         </div>
+
+                                        {/* Burbuja del mensaje */}
+                                        <div className={`px-4 py-2 rounded-lg ${isOwn
+                                            ? 'bg-primary text-white rounded-br-sm'
+                                            : 'bg-secondary-light dark:bg-secondary-dark text-text-dark dark:text-text-light rounded-bl-sm'
+                                            }`}>
+                                            <p className="text-sm break-words">{mensaje.contenido}</p>
+                                            <div className={`flex items-center justify-between mt-1`}>
+                                                <p className={`text-xs ${isOwn
+                                                    ? 'text-white/70'
+                                                    : 'text-text-secondary'
+                                                    }`}>
+                                                    {formatMessageTime(mensaje.created_at)}
+                                                </p>
+
+                                                {/* Estado del mensaje para mensajes propios */}
+                                                {isOwn && (
+                                                    <div className="ml-2">
+                                                        {mensaje.leido ? (
+                                                            <svg className="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 20 20" title="Leído">
+                                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                            </svg>
+                                                        ) : (
+                                                            <svg className="w-4 h-4 text-white/50" fill="currentColor" viewBox="0 0 20 20" title="Enviado">
+                                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                            </svg>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
-                    })
-                )}
-                <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input para nuevo mensaje */}
-            <div className="border-t border-secondary-light dark:border-secondary-dark p-4 bg-white dark:bg-secondary-dark">
-                <form onSubmit={handleSendMessage} className="flex space-x-2">
-                    <div className="flex-1 relative">
-                        <input
-                            type="text"
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            placeholder={`Mensaje a ${otherUser.nombre}...`}
-                            className="w-full px-4 py-2 border border-secondary-light dark:border-secondary-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-secondary-dark text-text-dark dark:text-text-light"
-                            disabled={sending}
-                            maxLength={1000}
-                        />
-                        {newMessage.length > 800 && (
-                            <div className="absolute -top-6 right-2 text-xs text-text-secondary">
-                                {1000 - newMessage.length} caracteres restantes
-                            </div>
-                        )}
+                            );
+                        })}
+                        {/* Elemento invisible para scroll */}
+                        <div ref={messagesEndRef} className="h-1" />
                     </div>
-                    <Button
-                        type="submit"
-                        disabled={!newMessage.trim() || sending}
-                        isLoading={sending}
-                        className="px-4 py-2 flex items-center"
-                        title={sending ? 'Enviando...' : 'Enviar mensaje'}
-                    >
-                        {sending ? (
-                            <Spinner />
-                        ) : (
-                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                            </svg>
-                        )}
-                    </Button>
-                </form>
+                )}
 
-                {/* Indicador de escritura (placeholder para futura implementación) */}
-                <div className="mt-2 text-xs text-text-secondary h-4">
-                    {/* Aquí se podría agregar "Usuario está escribiendo..." */}
+                {/* Input para nuevo mensaje */}
+                <div className="border-t border-secondary-light dark:border-secondary-dark p-4 bg-white dark:bg-secondary-dark">
+                    <form onSubmit={handleSendMessage} className="flex space-x-2">
+                        <div className="flex-1 relative">
+                            <input
+                                type="text"
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
+                                placeholder={`Mensaje a ${otherUser.nombre}...`}
+                                className="w-full px-4 py-2 border border-secondary-light dark:border-secondary-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-secondary-dark text-text-dark dark:text-text-light"
+                                disabled={sending}
+                                maxLength={1000}
+                            />
+                            {newMessage.length > 800 && (
+                                <div className="absolute -top-6 right-2 text-xs text-text-secondary">
+                                    {1000 - newMessage.length} caracteres restantes
+                                </div>
+                            )}
+                        </div>
+                        <Button
+                            type="submit"
+                            disabled={!newMessage.trim() || sending}
+                            isLoading={sending}
+                            className="px-4 py-2 flex items-center"
+                            title={sending ? 'Enviando...' : 'Enviar mensaje'}
+                        >
+                            {sending ? (
+                                <Spinner />
+                            ) : (
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                </svg>
+                            )}
+                        </Button>
+                    </form>
+
+                    {/* Indicador de escritura (placeholder para futura implementación) */}
+                    <div className="mt-2 text-xs text-text-secondary h-4">
+                        {/* Aquí se podría agregar "Usuario está escribiendo..." */}
+                    </div>
                 </div>
             </div>
         </div>

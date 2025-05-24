@@ -40,19 +40,27 @@ const Messages = () => {
 
     return (
         <Layout>
+            {/* Header */}
+            <div className="bg-primary text-white">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <h1 className="text-3xl font-extrabold">Mensajes</h1>
+                    <p className="mt-2">Conversa con compradores y vendedores</p>
+                </div>
+            </div>
+
             {/* Contenido principal */}
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="bg-white dark:bg-primary-dark rounded-lg shadow-md overflow-hidden">
-                    <div className="flex h-96 lg:h-[600px]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="bg-white dark:bg-primary-dark rounded-lg shadow-md overflow-hidden h-[600px]">
+                    <div className="flex h-full">
                         {/* Lista de conversaciones - siempre visible en desktop, oculta en móvil cuando hay conversación seleccionada */}
-                        <div className={`w-full lg:w-1/3 border-r border-secondary-light dark:border-secondary-dark ${selectedConversacion ? 'hidden lg:block' : 'block'
+                        <div className={`w-full lg:w-1/3 border-r border-secondary-light dark:border-secondary-dark flex flex-col ${selectedConversacion ? 'hidden lg:flex' : 'flex'
                             }`}>
-                            <div className="p-4 border-b border-secondary-light dark:border-secondary-dark">
+                            <div className="p-4 border-b border-secondary-light dark:border-secondary-dark flex-shrink-0">
                                 <h2 className="text-lg font-semibold text-text-dark dark:text-text-light">
                                     Conversaciones
                                 </h2>
                             </div>
-                            <div className="overflow-y-auto h-full">
+                            <div className="flex-1 overflow-y-auto p-3">
                                 <ConversationsList
                                     onSelectConversation={handleSelectConversation}
                                     selectedConversacionId={selectedConversacion?.id}
@@ -61,7 +69,7 @@ const Messages = () => {
                         </div>
 
                         {/* Ventana de chat - visible en desktop, reemplaza lista en móvil */}
-                        <div className={`lg:w-2/3 ${selectedConversacion ? 'w-full' : 'hidden lg:flex'
+                        <div className={`lg:w-2/3 flex flex-col ${selectedConversacion ? 'w-full flex' : 'hidden lg:flex'
                             }`}>
                             {loadingSpecific ? (
                                 <div className="flex-1 flex items-center justify-center">
@@ -71,7 +79,7 @@ const Messages = () => {
                                     </div>
                                 </div>
                             ) : (
-                                <>
+                                <div className="flex-1 flex flex-col relative">
                                     {/* Botón de volver en móvil */}
                                     {selectedConversacion && (
                                         <div className="lg:hidden absolute top-4 left-4 z-10">
@@ -87,7 +95,7 @@ const Messages = () => {
                                         </div>
                                     )}
                                     <ChatWindow conversacion={selectedConversacion} />
-                                </>
+                                </div>
                             )}
                         </div>
                     </div>

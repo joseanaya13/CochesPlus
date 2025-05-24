@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useAuth } from '../../contexts/AuthContext';
-import { formatPrice } from '../../utils/formatters';
 import messageService from '../../services/messageService';
 import Spinner from '../common/Spinner';
 import Alert from '../common/Alert';
@@ -177,16 +176,6 @@ const ConversationsList = ({ onSelectConversation, selectedConversacionId }) => 
                                     <span className="text-xs text-text-secondary dark:text-text-secondary flex-shrink-0 ml-2">
                                         {formatConversationTime(lastMessageTime)}
                                     </span>
-                                </div>
-
-                                {/* Información del coche */}
-                                <div className="text-xs text-text-secondary dark:text-text-secondary mb-1 truncate">
-                                    {conversation.coche?.marca?.nombre} {conversation.coche?.modelo?.nombre}
-                                    {conversation.coche?.precio && (
-                                        <span className="ml-2 font-medium text-primary">
-                                            {formatPrice(conversation.coche.precio)}
-                                        </span>
-                                    )}
                                 </div>
 
                                 {/* Último mensaje */}
