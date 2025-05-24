@@ -17,9 +17,9 @@ class ConversacionController extends Controller
         $user = Auth::user();
 
         $conversaciones = Conversacion::with([
-            'coche:id,marca.nombre,modelo.nombre,precio,imagenes',
-            'coche.marca:id,nombre',
-            'coche.modelo:id,nombre',
+            'coche:id,id_marca,id_modelo,precio', // Incluir las claves foráneas id_marca e id_modelo
+            'coche.marca:id,nombre', // Ahora sí podemos seleccionar nombre porque tenemos id_marca
+            'coche.modelo:id,nombre', // Ahora sí podemos seleccionar nombre porque tenemos id_modelo
             'coche.imagenes:id,id_coche,ruta',
             'comprador:id,nombre',
             'vendedor:id,nombre',
@@ -74,7 +74,7 @@ class ConversacionController extends Controller
 
         // Cargar relaciones para la respuesta
         $conversacion->load([
-            'coche:id,marca.nombre,modelo.nombre,precio',
+            'coche:id,id_marca,id_modelo,precio', // Incluir claves foráneas
             'coche.marca:id,nombre',
             'coche.modelo:id,nombre',
             'comprador:id,nombre',
@@ -92,7 +92,7 @@ class ConversacionController extends Controller
         $user = Auth::user();
 
         $conversacion = Conversacion::with([
-            'coche:id,marca.nombre,modelo.nombre,precio,imagenes',
+            'coche:id,id_marca,id_modelo,precio', // Incluir claves foráneas
             'coche.marca:id,nombre',
             'coche.modelo:id,nombre',
             'coche.imagenes:id,id_coche,ruta',
