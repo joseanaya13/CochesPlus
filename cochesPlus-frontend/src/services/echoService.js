@@ -1,12 +1,3 @@
-// cochesPlus-frontend/src/services/echoService.js
-import Echo from 'laravel-echo';
-import Pusher from 'pusher-js';
-
-// Configurar Pusher
-window.Pusher = Pusher;
-
-let echoInstance = null;
-
 const createEchoInstance = () => {
     const token = localStorage.getItem('token');
 
@@ -15,7 +6,7 @@ const createEchoInstance = () => {
         return null;
     }
 
-    return new Echo({
+    const echoConfig = {
         broadcaster: 'pusher',
         key: import.meta.env.VITE_PUSHER_APP_KEY,
         cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER || 'eu',
@@ -26,46 +17,22 @@ const createEchoInstance = () => {
             headers: {
                 Authorization: `Bearer ${token}`,
                 Accept: 'application/json',
+                'Content-Type': 'application/json',
             },
         },
         authEndpoint: import.meta.env.PROD
             ? 'https://josefa25.iesmontenaranco.com:8000/api/broadcasting/auth'
             : 'http://localhost:8000/api/broadcasting/auth',
+        enableStats: false,
+        enableLogging: true,
+    };
+
+    console.log('Configurando Echo con:', {
+        key: echoConfig.key,
+        cluster: echoConfig.cluster,
+        authEndpoint: echoConfig.authEndpoint,
+        hasToken: !!token
     });
-};
 
-// Función para obtener la instancia de Echo
-const getEcho = () => {
-    if (!echoInstance) {
-        echoInstance = createEchoInstance();
-    }
-    return echoInstance;
-};
-
-// Función para reconectar Echo (útil después del login)
-const reconnectEcho = () => {
-    if (echoInstance) {
-        echoInstance.disconnect();
-    }
-    echoInstance = createEchoInstance();
-    return echoInstance;
-};
-
-// Función para desconectar Echo
-const disconnectEcho = () => {
-    if (echoInstance) {
-        echoInstance.disconnect();
-        echoInstance = null;
-    }
-};
-
-export { getEcho, reconnectEcho, disconnectEcho };
-export default {
-    getEcho,
-    reconnectEcho,
-    disconnectEcho,
-    // Métodos de conveniencia para mantener compatibilidad
-    private: (channel) => getEcho()?.private(channel),
-    leave: (channel) => getEcho()?.leave(channel),
-    channel: (channel) => getEcho()?.channel(channel),
+    return new Echo(echoConfig);
 };

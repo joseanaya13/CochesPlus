@@ -12,6 +12,7 @@ use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ProvinciaController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\ConversacionController;
+use App\Http\Controllers\BroadcastingAuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
 
 // Rutas de autenticación
@@ -105,7 +106,5 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Ruta para autorización de broadcasting
-    Route::post('/broadcasting/auth', function (Request $request) {
-        return Broadcast::auth($request);
-    });
+    Route::post('/broadcasting/auth', [BroadcastingAuthController::class, 'authenticate']);
 });
