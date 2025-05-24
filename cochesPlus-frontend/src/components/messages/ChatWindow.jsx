@@ -82,6 +82,41 @@ const ChatWindow = ({ conversacion }) => {
         }
     };
 
+    const formatMessageTime = (dateString) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInHours = (now - date) / (1000 * 60 * 60);
+
+        if (diffInHours < 1) {
+            return 'Ahora';
+        } else if (diffInHours < 24) {
+            return date.toLocaleTimeString('es-ES', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } else if (diffInHours < 48) {
+            return 'Ayer ' + date.toLocaleTimeString('es-ES', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } else {
+            return date.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit'
+            }) + ' ' + date.toLocaleTimeString('es-ES', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    };
+
+    const getOtherUser = () => {
+        if (!conversacion || !user) return null;
+        return conversacion.comprador.id === user?.id
+            ? conversacion.vendedor
+            : conversacion.comprador;
+    };
+
     if (!conversacion) {
         return (
             <div className="flex-1 flex items-center justify-center bg-background-light dark:bg-primary-dark">
@@ -100,9 +135,7 @@ const ChatWindow = ({ conversacion }) => {
         );
     }
 
-    const otherUser = conversacion.comprador.id === user?.id
-        ? conversacion.vendedor
-        : conversacion.comprador;
+    const otherUser = getOtherUser();
 
     return (
         <div className="flex-1 flex flex-col bg-background-light dark:bg-primary-dark">
@@ -111,12 +144,12 @@ const ChatWindow = ({ conversacion }) => {
                 <div className="flex items-center space-x-3">
                     <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                         <span className="text-sm font-medium text-primary">
-                            {otherUser.nombre.charAt(0).toUpperCase()}
+                            {otherUser?.nombre.charAt(0).toUpperCase()}
                         </span>
                     </div>
                     <div>
                         <h3 className="text-lg font-medium text-text-dark dark:text-text-light">
-                            {otherUser.nombre}
+                            {otherUser?.nombre}
                         </h3>
                         <p className="text-sm text-text-secondary">
                             {conversacion.coche.marca.nombre} {conversacion.coche.modelo.nombre}
@@ -138,24 +171,60 @@ const ChatWindow = ({ conversacion }) => {
                         </p>
                     </div>
                 ) : (
-                    mensajes.map((mensaje) => {
+                    mensajes.map((mensaje, index) => {
                         const isOwn = mensaje.id_remitente === user?.id;
+                        const prevMessage = index > 0 ? mensajes[index - 1] : null;
+                        const showAvatar = !prevMessage || prevMessage.id_remitente !== mensaje.id_remitente;
+                        const showName = showAvatar && !isOwn;
 
                         return (
                             <div
                                 key={mensaje.id}
-                                className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                                className={`flex ${isOwn ? 'justify-end' : 'justify-start'} ${showAvatar ? 'mt-4' : 'mt-1'}`}
                             >
-                                <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${isOwn
-                                        ? 'bg-primary text-white'
-                                        : 'bg-secondary-light dark:bg-secondary-dark text-text-dark dark:text-text-light'
-                                    }`}>
-                                    <p className="text-sm">{mensaje.contenido}</p>
+                                {/* Avatar del remitente (solo para mensajes de otros usuarios) */}
+                                {!isOwn && (
+                                    <div className="flex-shrink-0 mr-3">
+                                        {showAvatar ? (
+                                            <div className="w-8 h-8 rounded-full bg-secondary/20 dark:bg-secondary/30 flex items-center justify-center">
+                                                <span className="text-xs font-medium text-text-secondary">
+                                                    {mensaje.remitente?.nombre?.charAt(0).toUpperCase() || 'U'}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <div className="w-8 h-8"></div>
+                                        )}
+                                    </div>
+                                )}
+
+                                <div className={`max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
+                                    {/* Nombre del remitente */}
+                                    {showName && (
+                                        <p className="text-xs text-text-secondary mb-1 ml-1">
+                                            {mensaje.remitente?.nombre || 'Usuario'}
+                                        </p>
+                                    )}
+
+                                    {/* Burbuja del mensaje */}
+                                    <div className={`inline-block px-4 py-2 rounded-lg ${isOwn
+                                            ? 'bg-primary text-white rounded-br-sm'
+                                            : 'bg-secondary-light dark:bg-secondary-dark text-text-dark dark:text-text-light rounded-bl-sm'
+                                        }`}>
+                                        <p className="text-sm">{mensaje.contenido}</p>
+                                    </div>
+
+                                    {/* Timestamp */}
                                     <p className={`text-xs mt-1 ${isOwn
-                                            ? 'text-white/70'
+                                            ? 'text-text-secondary'
                                             : 'text-text-secondary'
                                         }`}>
-                                        {formatDate(mensaje.created_at)}
+                                        {formatMessageTime(mensaje.created_at)}
+                                        {/* Indicador de mensaje propio */}
+                                        {isOwn && (
+                                            <span className="ml-1 text-primary">
+                                                ✓
+                                            </span>
+                                        )}
                                     </p>
                                 </div>
                             </div>
