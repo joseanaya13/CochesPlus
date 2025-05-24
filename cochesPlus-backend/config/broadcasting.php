@@ -19,6 +19,10 @@ return [
                 'curl_options' => [
                     CURLOPT_SSL_VERIFYHOST => 0,
                     CURLOPT_SSL_VERIFYPEER => 0,
+                    CURLOPT_CONNECTTIMEOUT => 30,
+                    CURLOPT_TIMEOUT => 60,
+                    CURLOPT_DNS_CACHE_TIMEOUT => 300,
+                    CURLOPT_FRESH_CONNECT => true,
                 ]
             ],
         ],

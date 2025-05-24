@@ -3,7 +3,39 @@ import PropTypes from 'prop-types';
 import { useAuth } from '../../contexts/AuthContext';
 import messageService from '../../services/messageService';
 import { getEcho } from '../../services/echoService';
-import { formatDate } from '../../utils/formatters';
+// import { formatDate } from '../../utils/formatters';
+
+// Función auxiliar para formatear fechas
+const formatDate = (dateString) => {
+    if (!dateString) return '';
+
+    try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInMinutes = (now - date) / (1000 * 60);
+
+        if (diffInMinutes < 1) {
+            return 'Ahora';
+        } else if (diffInMinutes < 60) {
+            return `Hace ${Math.floor(diffInMinutes)} min`;
+        } else if (diffInMinutes < 24 * 60) {
+            return date.toLocaleTimeString('es-ES', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } else {
+            return date.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    } catch (error) {
+        console.error('Error formateando fecha:', error);
+        return '';
+    }
+};
 import Button from '../common/Button';
 import Spinner from '../common/Spinner';
 
@@ -23,8 +55,8 @@ const ChatWindow = ({ conversacion, onNewMessage }) => {
 
     useEffect(() => {
         if (conversacion) {
+            console.log('Conversación cambiada, cargando mensajes para conversación:', conversacion.id);
             loadMensajes();
-            scrollToBottom();
             setupRealtimeConnection();
         }
 
@@ -69,6 +101,7 @@ const ChatWindow = ({ conversacion, onNewMessage }) => {
                         }
 
                         const newMensajes = [...prevMensajes, data];
+                        console.log('Mensajes actualizados:', newMensajes);
 
                         // Notificar al componente padre si hay callback
                         if (onNewMessage) {
@@ -122,13 +155,22 @@ const ChatWindow = ({ conversacion, onNewMessage }) => {
 
         try {
             setLoading(true);
+            console.log('Cargando mensajes para conversación:', conversacion.id);
+
             const response = await messageService.getMensajes(conversacion.id);
-            setMensajes(response.data || []);
+            console.log('Respuesta de mensajes:', response);
+
+            // La respuesta puede tener la estructura { data: [...], current_page: ..., etc }
+            const mensajesData = response.data || response || [];
+            console.log('Mensajes extraídos:', mensajesData);
+
+            setMensajes(mensajesData);
 
             // Marcar mensajes como leídos
             await messageService.markAllAsRead(conversacion.id);
         } catch (error) {
             console.error('Error al cargar mensajes:', error);
+            setMensajes([]); // Establecer array vacío en caso de error
         } finally {
             setLoading(false);
         }
@@ -144,7 +186,10 @@ const ChatWindow = ({ conversacion, onNewMessage }) => {
 
         try {
             setSending(true);
+            console.log('Enviando mensaje:', messageContent);
+
             const mensaje = await messageService.sendMensaje(conversacion.id, messageContent);
+            console.log('Mensaje enviado:', mensaje);
 
             // Agregar el mensaje enviado localmente
             setMensajes(prevMensajes => {
@@ -153,7 +198,10 @@ const ChatWindow = ({ conversacion, onNewMessage }) => {
                 if (existingMessage) {
                     return prevMensajes;
                 }
-                return [...prevMensajes, mensaje];
+
+                const newMensajes = [...prevMensajes, mensaje];
+                console.log('Mensajes actualizados después de envío:', newMensajes);
+                return newMensajes;
             });
 
         } catch (error) {
@@ -187,6 +235,13 @@ const ChatWindow = ({ conversacion, onNewMessage }) => {
         ? conversacion.vendedor
         : conversacion.comprador;
 
+    console.log('Renderizando ChatWindow con:', {
+        conversacion: conversacion.id,
+        mensajesCount: mensajes.length,
+        loading,
+        mensajes: mensajes.slice(0, 3) 
+    });
+
     return (
         <div className="flex-1 flex flex-col bg-background-light dark:bg-primary-dark">
             {/* Header del chat */}
@@ -219,7 +274,7 @@ const ChatWindow = ({ conversacion, onNewMessage }) => {
             </div>
 
             {/* Área de mensajes */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
                 {loading ? (
                     <div className="flex justify-center">
                         <Spinner />
@@ -233,6 +288,14 @@ const ChatWindow = ({ conversacion, onNewMessage }) => {
                 ) : (
                     mensajes.map((mensaje) => {
                         const isOwn = mensaje.id_remitente === user?.id;
+
+                        console.log('Renderizando mensaje:', {
+                            id: mensaje.id,
+                            contenido: mensaje.contenido,
+                            isOwn,
+                            remitente: mensaje.id_remitente,
+                            currentUser: user?.id
+                        });
 
                         return (
                             <div
