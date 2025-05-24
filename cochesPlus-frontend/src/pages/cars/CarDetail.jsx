@@ -70,8 +70,8 @@ const CarDetail = () => {
             const params = {
                 id_marca: cocheActual.id_marca,
                 id_categoria: cocheActual.id_categoria,
-                per_page: 8, 
-                incluir_vendidos: 'false' 
+                per_page: 8,
+                incluir_vendidos: 'false'
             };
             const response = await cocheService.getAllCoches(params);
             const filteredCoches = response.data?.filter(c => c.id !== parseInt(id)) || [];
@@ -407,6 +407,7 @@ const CarDetail = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
                     {/* Columna principal (2/3) */}
                     <div className="lg:col-span-2">
                         {/* 3. Datos Técnicos */}
@@ -668,162 +669,162 @@ const CarDetail = () => {
                                 </Button>
                             )}
 
-                        {/* 7. Acciones disponibles (solo para propietario o admin) */}
-                        {canEdit && (
-                            <div className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md p-6 mb-6">
-                                <h2 className="text-lg font-bold text-text-dark dark:text-text-light mb-4">
-                                    Gestión del anuncio
-                                </h2>
-                                <div className="space-y-3">
-                                    <Button
-                                        variant="primary"
-                                        className='flex items-center justify-center'
-                                        fullWidth
-                                        onClick={() => navigate(`/vendedor/editar/${id}`)}
-                                    >
-                                        <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                        Editar anuncio
-                                    </Button>
-
-                                    {!coche.vendido && (
+                            {/* 7. Acciones disponibles (solo para propietario o admin) */}
+                            {canEdit && (
+                                <div className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md p-6 mb-6">
+                                    <h2 className="text-lg font-bold text-text-dark dark:text-text-light mb-4">
+                                        Gestión del anuncio
+                                    </h2>
+                                    <div className="space-y-3">
                                         <Button
-                                            variant="success"
+                                            variant="primary"
                                             className='flex items-center justify-center'
                                             fullWidth
-                                            onClick={handleMarkAsSold}
+                                            onClick={() => navigate(`/vendedor/editar/${id}`)}
                                         >
                                             <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
-                                            Marcar como vendido
+                                            Editar anuncio
                                         </Button>
-                                    )}
 
-                                    <Button
-                                        variant="danger"
-                                        fullWidth
-                                        className='flex items-center justify-center'
-                                        onClick={openDeleteModal}
-                                    >
-                                        <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                        Eliminar anuncio
-                                    </Button>
-                                </div>
+                                        {!coche.vendido && (
+                                            <Button
+                                                variant="success"
+                                                className='flex items-center justify-center'
+                                                fullWidth
+                                                onClick={handleMarkAsSold}
+                                            >
+                                                <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                Marcar como vendido
+                                            </Button>
+                                        )}
 
-                                {/* Estados del anuncio */}
-                                <div className="mt-4 pt-4 border-t border-secondary-light dark:border-secondary-dark">
-                                    <h3 className="text-sm font-medium text-text-dark dark:text-text-light mb-3">Estado del anuncio</h3>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm text-text-secondary dark:text-text-secondary">Publicado</span>
-                                            <span className="inline-flex items-center text-xs font-medium bg-success/10 text-success px-2 py-1 rounded-full">
-                                                Activo
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm text-text-secondary dark:text-text-secondary">Verificado</span>
-                                            <span className={`inline-flex items-center text-xs font-medium px-2 py-1 rounded-full ${coche.verificado
-                                                ? 'bg-success/10 text-success'
-                                                : 'bg-text-secondary/10 text-text-secondary'
-                                                }`}>
-                                                {coche.verificado ? 'Sí' : 'No'}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm text-text-secondary dark:text-text-secondary">Destacado</span>
-                                            <span className={`inline-flex items-center text-xs font-medium px-2 py-1 rounded-full ${coche.destacado
-                                                ? 'bg-warning/10 text-warning'
-                                                : 'bg-text-secondary/10 text-text-secondary'
-                                                }`}>
-                                                {coche.destacado ? 'Sí' : 'No'}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm text-text-secondary dark:text-text-secondary">Vendido</span>
-                                            <span className={`inline-flex items-center text-xs font-medium px-2 py-1 rounded-full ${coche.vendido
-                                                ? 'bg-error/10 text-error'
-                                                : 'bg-text-secondary/10 text-text-secondary'
-                                                }`}>
-                                                {coche.vendido ? 'Sí' : 'No'}
-                                            </span>
+                                        <Button
+                                            variant="danger"
+                                            fullWidth
+                                            className='flex items-center justify-center'
+                                            onClick={openDeleteModal}
+                                        >
+                                            <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            Eliminar anuncio
+                                        </Button>
+                                    </div>
+
+                                    {/* Estados del anuncio */}
+                                    <div className="mt-4 pt-4 border-t border-secondary-light dark:border-secondary-dark">
+                                        <h3 className="text-sm font-medium text-text-dark dark:text-text-light mb-3">Estado del anuncio</h3>
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-text-secondary dark:text-text-secondary">Publicado</span>
+                                                <span className="inline-flex items-center text-xs font-medium bg-success/10 text-success px-2 py-1 rounded-full">
+                                                    Activo
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-text-secondary dark:text-text-secondary">Verificado</span>
+                                                <span className={`inline-flex items-center text-xs font-medium px-2 py-1 rounded-full ${coche.verificado
+                                                    ? 'bg-success/10 text-success'
+                                                    : 'bg-text-secondary/10 text-text-secondary'
+                                                    }`}>
+                                                    {coche.verificado ? 'Sí' : 'No'}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-text-secondary dark:text-text-secondary">Destacado</span>
+                                                <span className={`inline-flex items-center text-xs font-medium px-2 py-1 rounded-full ${coche.destacado
+                                                    ? 'bg-warning/10 text-warning'
+                                                    : 'bg-text-secondary/10 text-text-secondary'
+                                                    }`}>
+                                                    {coche.destacado ? 'Sí' : 'No'}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-text-secondary dark:text-text-secondary">Vendido</span>
+                                                <span className={`inline-flex items-center text-xs font-medium px-2 py-1 rounded-full ${coche.vendido
+                                                    ? 'bg-error/10 text-error'
+                                                    : 'bg-text-secondary/10 text-text-secondary'
+                                                    }`}>
+                                                    {coche.vendido ? 'Sí' : 'No'}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* 8. Recomendaciones */}
+                    <div className="mt-12">
+                        <h2 className="text-2xl font-bold text-text-dark dark:text-text-light mb-6">
+                            Anuncios similares
+                        </h2>
+
+                        {loadingRecomendados ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {[...Array(4)].map((_, index) => (
+                                    <div key={index} className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md overflow-hidden animate-pulse">
+                                        <div className="h-40 bg-secondary-light dark:bg-secondary-dark"></div>
+                                        <div className="p-4">
+                                            <div className="h-4 bg-secondary-light dark:bg-secondary-dark rounded w-3/4 mb-2"></div>
+                                            <div className="h-6 bg-secondary-light dark:bg-secondary-dark rounded w-1/2 mb-2"></div>
+                                            <div className="h-4 bg-secondary-light dark:bg-secondary-dark rounded w-full"></div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : cochesRecomendados.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {cochesRecomendados.map(coche => (
+                                    <Link
+                                        key={coche.id}
+                                        to={`/coches/${coche.id}`}
+                                        className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                                    >
+                                        <div className="h-40 relative">
+                                            {coche.imagenes && coche.imagenes.length > 0 ? (
+                                                <img
+                                                    src={`${baseImageUrl}/${coche.imagenes[0].ruta}`}
+                                                    alt={`${coche.marca.nombre} ${coche.modelo.nombre}`}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center bg-secondary-light dark:bg-secondary-dark text-text-secondary">
+                                                    Sin imagen
+                                                </div>
+                                            )}
+                                            <div className="absolute bottom-2 right-2 bg-primary text-white text-sm font-bold px-2 py-1 rounded">
+                                                {formatPrice(coche.precio)}
+                                            </div>
+                                        </div>
+                                        <div className="p-4">
+                                            <h3 className="font-medium text-text-dark dark:text-text-light mb-1 truncate">
+                                                {coche.marca.nombre} {coche.modelo.nombre}
+                                            </h3>
+                                            <div className="text-sm text-text-secondary dark:text-text-secondary flex items-center">
+                                                <span>{coche.anio}</span>
+                                                <span className="mx-1">•</span>
+                                                <span>{coche.kilometraje.toLocaleString()} km</span>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 bg-background-light dark:bg-primary-dark rounded-lg">
+                                <p className="text-text-secondary dark:text-text-secondary">
+                                    No se encontraron anuncios similares.
+                                </p>
                             </div>
                         )}
                     </div>
                 </div>
-
-                {/* 8. Recomendaciones */}
-                <div className="mt-12">
-                    <h2 className="text-2xl font-bold text-text-dark dark:text-text-light mb-6">
-                        Anuncios similares
-                    </h2>
-
-                    {loadingRecomendados ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {[...Array(4)].map((_, index) => (
-                                <div key={index} className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md overflow-hidden animate-pulse">
-                                    <div className="h-40 bg-secondary-light dark:bg-secondary-dark"></div>
-                                    <div className="p-4">
-                                        <div className="h-4 bg-secondary-light dark:bg-secondary-dark rounded w-3/4 mb-2"></div>
-                                        <div className="h-6 bg-secondary-light dark:bg-secondary-dark rounded w-1/2 mb-2"></div>
-                                        <div className="h-4 bg-secondary-light dark:bg-secondary-dark rounded w-full"></div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : cochesRecomendados.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {cochesRecomendados.map(coche => (
-                                <Link
-                                    key={coche.id}
-                                    to={`/coches/${coche.id}`}
-                                    className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-                                >
-                                    <div className="h-40 relative">
-                                        {coche.imagenes && coche.imagenes.length > 0 ? (
-                                            <img
-                                                src={`${baseImageUrl}/${coche.imagenes[0].ruta}`}
-                                                alt={`${coche.marca.nombre} ${coche.modelo.nombre}`}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-secondary-light dark:bg-secondary-dark text-text-secondary">
-                                                Sin imagen
-                                            </div>
-                                        )}
-                                        <div className="absolute bottom-2 right-2 bg-primary text-white text-sm font-bold px-2 py-1 rounded">
-                                            {formatPrice(coche.precio)}
-                                        </div>
-                                    </div>
-                                    <div className="p-4">
-                                        <h3 className="font-medium text-text-dark dark:text-text-light mb-1 truncate">
-                                            {coche.marca.nombre} {coche.modelo.nombre}
-                                        </h3>
-                                        <div className="text-sm text-text-secondary dark:text-text-secondary flex items-center">
-                                            <span>{coche.anio}</span>
-                                            <span className="mx-1">•</span>
-                                            <span>{coche.kilometraje.toLocaleString()} km</span>
-                                        </div>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-8 bg-background-light dark:bg-primary-dark rounded-lg">
-                            <p className="text-text-secondary dark:text-text-secondary">
-                                No se encontraron anuncios similares.
-                            </p>
-                        </div>
-                    )}
-                </div>
             </div>
-
             {/* Modal para confirmar eliminación de anuncio */}
             <Modal
                 isOpen={isDeleteModalOpen}
