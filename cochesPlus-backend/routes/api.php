@@ -21,6 +21,10 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink']);
 Route::post('/reset-password', [PasswordResetController::class, 'reset']);
 
+// Ruta de autorización de broadcasting (DEBE estar antes de las rutas protegidas por auth)
+Route::post('/broadcasting/auth', [BroadcastingAuthController::class, 'authenticate'])
+    ->middleware('auth:sanctum');
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
@@ -55,12 +59,6 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
 Route::get('/provincias', [ProvinciaController::class, 'index']);
 Route::get('/provincias/{id}', [ProvinciaController::class, 'show']);
 
-// Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
-//     Route::post('/provincias', [ProvinciaController::class, 'store']);
-//     Route::put('/provincias/{id}', [ProvinciaController::class, 'update']);
-//     Route::delete('/provincias/{id}', [ProvinciaController::class, 'destroy']);
-// });
-
 // Rutas de coches
 Route::get('/coches', [CocheController::class, 'index']);
 Route::get('/coche/{id}', [CocheController::class, 'show']);
@@ -88,8 +86,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Rutas protegidas por autenticación
 Route::middleware('auth:sanctum')->group(function () {
-    // ... rutas existentes ...
-
     // Rutas de conversaciones y mensajes
     Route::prefix('conversaciones')->group(function () {
         // Gestión de conversaciones
@@ -104,7 +100,4 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{conversacionId}/mensajes/{mensajeId}/leido', [MensajeController::class, 'markAsRead']);
         Route::put('/{conversacionId}/mensajes/leer-todos', [MensajeController::class, 'markAllAsRead']);
     });
-
-    // Ruta para autorización de broadcasting
-    Route::post('/broadcasting/auth', [BroadcastingAuthController::class, 'authenticate']);
 });

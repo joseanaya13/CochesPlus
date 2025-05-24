@@ -2,7 +2,12 @@
 // config/cors.php
 
 return [
-    'paths' => ['api/*', 'sanctum/csrf-cookie', 'broadcasting/auth'],
+    'paths' => [
+        'api/*',
+        'sanctum/csrf-cookie',
+        'broadcasting/auth',
+        'api/broadcasting/auth'  // Agregado para asegurar CORS
+    ],
 
     'allowed_methods' => ['*'],
 
@@ -14,7 +19,15 @@ return [
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['*'],
+    'allowed_headers' => [
+        '*',
+        'Content-Type',
+        'Accept',
+        'Authorization',
+        'X-Requested-With',
+        'X-Socket-Id',
+        'X-CSRF-TOKEN'
+    ],
 
     'exposed_headers' => [],
 
