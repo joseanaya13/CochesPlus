@@ -1,0 +1,53 @@
+services:
+  db:
+    build: ./db
+    container_name: cochesplus_db
+    restart: always
+    volumes:
+      - datos_db:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: cochesplus_db
+    networks:
+      - cochesplus_net
+
+  backend:
+    build: ./back
+    container_name: back
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - 8000:80
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_DATABASE: cochesplus_db
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      APP_URL: https://josefa25.iesmontenaranco.com
+    networks:
+      - cochesplus_net
+
+  front:
+    build: ./front
+    container_name: front
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - 80:80
+    environment:
+      - NODE_ENV=production
+    networks:
+      - cochesplus_net
+
+volumes:
+  datos_db:
+
+networks:
+  cochesplus_net:
+    driver: bridge
+
+
+
