@@ -26,7 +26,7 @@ import PrivacyPolicy from './pages/public/PrivacyPolicy';
 import TermsOfService from './pages/public/TermsOfService';
 // import UserManagement from './pages/dashboard/UserManagement';
 // import CarApprovals from './pages/dashboard/CarApprovals';
-// import Messages from './pages/seller/Messages';
+import Messages from './pages/messages/Messages';
 // import Conversation from './pages/messaging/Conversation';
 
 import EditCar from './pages/seller/EditCar';
