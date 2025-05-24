@@ -8,6 +8,7 @@ import favoritoService from '../../services/FavoritoService';
 import { formatPrice, formatDate } from '../../utils/formatters';
 import Alert from '../../components/common/Alert';
 import Modal from '../../components/common/Modal';
+import ChatButton from '../../components/messages/ChatButton';
 
 const CarDetail = () => {
     const { id } = useParams();
@@ -640,15 +641,10 @@ const CarDetail = () => {
                             {/* Botones de acción para interactuar con el vendedor */}
                             {isAuthenticated ? (
                                 <>
-                                    <Button
-                                        variant="primary"
-                                        fullWidth
-                                        className="mb-3"
-                                        onClick={() => alert('Función de contacto no implementada')}
-                                        disabled={coche.vendido}
-                                    >
-                                        Contactar con el vendedor
-                                    </Button>
+                                    <ChatButton
+                                        coche={coche}
+                                        className="mb-3 w-full"
+                                    />
                                     <Button
                                         variant={isFavorite ? "secondary" : "outline"}
                                         fullWidth
@@ -671,7 +667,6 @@ const CarDetail = () => {
                                     Inicia sesión para contactar
                                 </Button>
                             )}
-                        </div>
 
                         {/* 7. Acciones disponibles (solo para propietario o admin) */}
                         {canEdit && (

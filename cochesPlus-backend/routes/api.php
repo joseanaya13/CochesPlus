@@ -2,14 +2,17 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\Auth\PasswordResetController;
-use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\CocheController;
 use App\Http\Controllers\MarcaController;
+use Illuminate\Support\Facades\Broadcast;
+use App\Http\Controllers\MensajeController;
+use App\Http\Controllers\FavoritoController;
+use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ProvinciaController;
-use App\Http\Controllers\CocheController;
-use App\Http\Controllers\FavoritoController;
+use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\ConversacionController;
+use App\Http\Controllers\Auth\PasswordResetController;
 
 // Rutas de autenticación
 Route::post('/login', [AuthController::class, 'login']);
@@ -80,4 +83,29 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/favoritos', [FavoritoController::class, 'addFavorite']);
     Route::get('/user/favoritos/{cocheId}', [FavoritoController::class, 'checkFavorite']);
     Route::delete('/user/favoritos/{cocheId}', [FavoritoController::class, 'removeFavorite']);
+});
+
+// Rutas protegidas por autenticación
+Route::middleware('auth:sanctum')->group(function () {
+    // ... rutas existentes ...
+
+    // Rutas de conversaciones y mensajes
+    Route::prefix('conversaciones')->group(function () {
+        // Gestión de conversaciones
+        Route::get('/', [ConversacionController::class, 'index']);
+        Route::post('/', [ConversacionController::class, 'store']);
+        Route::get('/{id}', [ConversacionController::class, 'show']);
+        Route::delete('/{id}', [ConversacionController::class, 'destroy']);
+
+        // Gestión de mensajes dentro de conversaciones
+        Route::get('/{conversacionId}/mensajes', [MensajeController::class, 'index']);
+        Route::post('/{conversacionId}/mensajes', [MensajeController::class, 'store']);
+        Route::put('/{conversacionId}/mensajes/{mensajeId}/leido', [MensajeController::class, 'markAsRead']);
+        Route::put('/{conversacionId}/mensajes/leer-todos', [MensajeController::class, 'markAllAsRead']);
+    });
+
+    // Ruta para autorización de broadcasting
+    Route::post('/broadcasting/auth', function (Request $request) {
+        return Broadcast::auth($request);
+    });
 });
