@@ -92,7 +92,7 @@ class BroadcastingAuthController extends Controller
             }
 
             // Generar la firma de autenticación
-            $auth = $pusher->socket_auth($channelName, $socketId);
+            $auth = $pusher->authorizeChannel($channelName, $socketId);
 
             Log::info('Broadcasting authentication successful', [
                 'user_id' => $request->user()->id,
