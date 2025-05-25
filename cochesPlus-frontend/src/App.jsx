@@ -31,6 +31,9 @@ import EditCar from './pages/seller/EditCar';
 import NewCar from './pages/seller/NewCar';
 import MyCars from './pages/seller/MyCars';
 
+// Nueva página de valoraciones
+import ValoracionesPage from './pages/ratings/ValoracionesPage';
+
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
@@ -78,8 +81,11 @@ export default function App() {
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/favoritos" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
 
-            {/* Rutas de mensajes - corregidas */}
+            {/* Rutas de mensajes */}
             <Route path="/mensajes" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+
+            {/* Rutas de valoraciones */}
+            <Route path="/valoraciones" element={<ProtectedRoute><ValoracionesPage /></ProtectedRoute>} />
 
             {/* Exploración de coches */}
             <Route path="/coches" element={<ExploreCars />} />
