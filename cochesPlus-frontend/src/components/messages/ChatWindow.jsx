@@ -49,10 +49,6 @@ const ChatWindow = ({ conversacion, onNewMessage }) => {
     const messagesEndRef = useRef(null);
     const echoChannelRef = useRef(null);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
     useEffect(() => {
         if (conversacion) {
             console.log('Conversación cambiada, cargando mensajes para conversación:', conversacion.id);
@@ -65,10 +61,6 @@ const ChatWindow = ({ conversacion, onNewMessage }) => {
             cleanupRealtimeConnection();
         };
     }, [conversacion]);
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [mensajes]);
 
     const setupRealtimeConnection = () => {
         if (!conversacion) return;
