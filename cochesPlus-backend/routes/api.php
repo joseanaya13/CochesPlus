@@ -10,6 +10,7 @@ use App\Http\Controllers\FavoritoController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ProvinciaController;
+use App\Http\Controllers\ValoracionController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\ConversacionController;
 use App\Http\Controllers\BroadcastingAuthController;
@@ -99,4 +100,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{conversacionId}/mensajes/{mensajeId}/leido', [MensajeController::class, 'markAsRead']);
         Route::put('/{conversacionId}/mensajes/leer-todos', [MensajeController::class, 'markAllAsRead']);
     });
+});
+
+// Rutas de valoraciones
+Route::get('/vendedores/{vendedorId}/valoraciones', [ValoracionController::class, 'getValoracionesVendedor']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/valoraciones', [ValoracionController::class, 'store']);
+    Route::put('/valoraciones/{id}', [ValoracionController::class, 'update']);
+    Route::delete('/valoraciones/{id}', [ValoracionController::class, 'destroy']);
+
+    Route::get('/user/compras-sin-valorar', [ValoracionController::class, 'getComprasSinValorar']);
+    Route::get('/user/valoraciones-realizadas', [ValoracionController::class, 'getValoracionesRealizadas']);
+    Route::get('/user/estadisticas-vendedor', [ValoracionController::class, 'getEstadisticasVendedor']);
 });
