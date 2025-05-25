@@ -17,7 +17,7 @@ import Favorites from './pages/buyer/Favorites';
 import ExploreCars from './pages/cars/ExploreCars';
 import CarDetail from './pages/cars/CarDetail';
 
-// import Dashboard from './pages/dashboard/Dashboard';
+import Dashboard from './pages/dashboard/Dashboard';
 // import About from './pages/public/About';
 // import Contact from './pages/public/Contact';
 // import FAQ from './pages/public/FAQ';
@@ -33,6 +33,7 @@ import MyCars from './pages/seller/MyCars';
 
 // Nueva página de valoraciones
 import ValoracionesPage from './pages/ratings/ValoracionesPage';
+import VerifyDocuments from './pages/admin/VerifyDocuments';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -97,12 +98,11 @@ export default function App() {
             {/* <Route path="/faq" element={<FAQ />} /> */}
             <Route path="/privacidad" element={<PrivacyPolicy />} />
             <Route path="/terminos" element={<TermsOfService />} />
-            <Route path="/cookies" element={<PrivacyPolicy />} />
-
-            {/* Rutas protegidas */}
-            {/* <Route path="/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} /> */}
+            <Route path="/cookies" element={<PrivacyPolicy />} />            {/* Rutas protegidas */}
+            <Route path="/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
             {/* <Route path="/dashboard/users" element={<AdminRoute><UserManagement /></AdminRoute>} /> */}
             {/* <Route path="/dashboard/approvals" element={<AdminRoute><CarApprovals /></AdminRoute>} /> */}
+            <Route path="/admin/verificar-documentos" element={<AdminRoute><VerifyDocuments /></AdminRoute>} />
 
             {/* Rutas para vendedores */}
             <Route path="/vendedor/coches" element={<ProtectedRoute><MyCars /></ProtectedRoute>} />

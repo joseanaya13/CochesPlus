@@ -90,7 +90,7 @@ const Navbar = () => {
                             </Link> */}
 
                             {/* Enlaces para administradores */}
-                            {isAuthenticated && hasRole('admin') && (
+                            {isAuthenticated && hasRole('admin') &&  (
                                 <Link to="/dashboard" className={getNavLinkClass('/dashboard')}>
                                     Dashboard
                                 </Link>

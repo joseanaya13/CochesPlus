@@ -82,10 +82,12 @@ class CocheService {
 
     getCategorias() {
         return apiService.get('/categorias');
+    } getProvincias() {
+        return apiService.get('/provincias');
     }
 
-    getProvincias() {
-        return apiService.get('/provincias');
+    verificarCoche(cocheId, verificado) {
+        return apiService.put(`/coches/${cocheId}/verificar`, { verificado });
     }
 }
 

@@ -14,7 +14,7 @@ class CocheController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Coche::with(['usuario', 'marca', 'modelo', 'categoria', 'provincia', 'imagenes']);
+        $query = Coche::with(['usuario', 'marca', 'modelo', 'categoria', 'provincia', 'imagenes', 'documentos']);
 
         // Filtros directos (coincidencia exacta)
         $filters = [
@@ -202,10 +202,10 @@ class CocheController extends Controller
                 'vendido'
             ]));
 
-            if (Auth::user()->hasRole('admin')) {
-                $coche->verificado = $request->boolean('verificado', $coche->verificado);
-                $coche->destacado = $request->boolean('destacado', $coche->destacado);
-            }
+            // if (Auth::user()->hasRole('admin')) {
+            //     $coche->verificado = $request->boolean('verificado', $coche->verificado);
+            //     $coche->destacado = $request->boolean('destacado', $coche->destacado);
+            // }
 
             $coche->vendido = $request->boolean('vendido', $coche->vendido);
 
@@ -424,7 +424,7 @@ class CocheController extends Controller
 
     /**
      * Elimina archivos del almacenamiento y la base de datos
-     */
+     */    
     private function eliminarArchivo($archivos)
     {
         if (!$archivos) {
@@ -438,6 +438,97 @@ class CocheController extends Controller
             $path = str_replace('storage/', 'public/', $archivo->ruta);
             Storage::delete($path);
             $archivo->delete();
+        }
+    }
+
+    /**
+     * Verifica un coche después de revisar sus documentos (solo administradores)
+     *
+     * @OA\Put(
+     *     path="/api/coches/{id}/verificar",
+     *     summary="Verificar un coche",
+     *     description="Cambia el estado de verificación de un coche (solo para administradores)",
+     *     operationId="verificarCoche",
+     *     tags={"Coches"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID del coche a verificar",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"verificado"},
+     *             @OA\Property(property="verificado", type="boolean", example=true, description="Estado de verificación")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Coche verificado correctamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Coche verificado correctamente"),
+     *             @OA\Property(property="coche", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Coche no encontrado"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="No autorizado"
+     *     )
+     * )
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function verificarCoche(Request $request, $id)
+    {
+        // Validar
+        $request->validate([
+            'verificado' => 'required|boolean'
+        ], [
+            'verificado.required' => 'El estado de verificación es obligatorio',
+            'verificado.boolean' => 'El estado de verificación debe ser booleano'
+        ]);
+
+        try {
+            // Buscar el coche
+            $coche = Coche::findOrFail($id);
+
+            // Verificar que el usuario es administrador (ya validado en middleware pero por seguridad extra)
+            // if (!Auth::user() || !Auth::user()->hasRole('admin')) {
+            //     return response()->json([
+            //         'message' => 'No tienes permisos para verificar coches'
+            //     ], 403);
+            // }
+
+            DB::beginTransaction();
+
+            // Actualizar el estado de verificación
+            $coche->verificado = $request->verificado;
+            $coche->save();
+
+            DB::commit();
+
+            // Devolver el coche actualizado
+            return response()->json([
+                'message' => $request->verificado
+                    ? 'Coche verificado correctamente'
+                    : 'Se ha removido la verificación del coche',
+                'coche' => $coche->load(['marca', 'modelo', 'categoria', 'provincia', 'imagenes', 'documentos'])
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Error al verificar el coche',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

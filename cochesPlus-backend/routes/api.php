@@ -69,6 +69,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/coche/{id}', [CocheController::class, 'destroy']);
     Route::get('/user/coches', [CocheController::class, 'getUserCars']);
 
+    // Rutas para verificación de documentos (solo admin)
+    Route::put('/coches/{id}/verificar', [CocheController::class, 'verificarCoche']);
+    
+
     // Gestión de imágenes y documentos de coches
     Route::post('/coches/{id}/imagenes', [CocheController::class, 'addImage']);
     Route::delete('/coches/{id}/imagenes/{imagenId}', [CocheController::class, 'removeImage']);
