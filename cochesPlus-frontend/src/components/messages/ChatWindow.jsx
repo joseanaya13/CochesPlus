@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { useAuth } from '../../contexts/AuthContext';
 import messageService from '../../services/messageService';
 import { getEcho } from '../../services/echoService';
-// import { formatDate } from '../../utils/formatters';
 
 // Función auxiliar para formatear fechas
 const formatDate = (dateString) => {
