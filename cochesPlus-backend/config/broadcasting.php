@@ -13,12 +13,12 @@ return [
             'options' => [
                 'cluster' => env('PUSHER_APP_CLUSTER'),
                 'encrypted' => true,
-                'host' => env('PUSHER_HOST') ?: 'api-' . env('PUSHER_APP_CLUSTER', 'mt1') . '.pusherapp.com',
+                'host' => env('PUSHER_HOST') ?: 'api-' . env('PUSHER_APP_CLUSTER', 'mt1') . '.pusher.com',
                 'port' => env('PUSHER_PORT', 443),
                 'scheme' => env('PUSHER_SCHEME', 'https'),
                 'curl_options' => [
-                    CURLOPT_SSL_VERIFYHOST => 0,
-                    CURLOPT_SSL_VERIFYPEER => 0,
+                    CURLOPT_SSL_VERIFYHOST => env('APP_ENV') === 'production' ? 2 : 0,
+                    CURLOPT_SSL_VERIFYPEER => env('APP_ENV') === 'production' ? true : false,
                     CURLOPT_CONNECTTIMEOUT => 30,
                     CURLOPT_TIMEOUT => 60,
                     CURLOPT_DNS_CACHE_TIMEOUT => 300,
