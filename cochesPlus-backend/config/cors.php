@@ -15,15 +15,30 @@ return [
         'http://localhost:5173',
         'http://127.0.0.1:5173',
         'https://josefa25.iesmontenaranco.com',
+        // Agregar dominio para Pusher si es necesario
+        'https://ws-eu.pusher.com',
     ],
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => [
+        // Permitir subdominios de pusher
+        '/^https:\/\/.*\.pusher\.com$/',
+        '/^https:\/\/.*\.pusherapp\.com$/',
+    ],
 
-    'allowed_headers' => ['*'],
+    'allowed_headers' => [
+        '*',
+        'Content-Type',
+        'Accept',
+        'Authorization',
+        'X-Requested-With',
+        'X-Socket-Id',
+        'X-CSRF-TOKEN',
+        'X-Pusher-Key'
+    ],
 
     'exposed_headers' => [],
 
-    'max_age' => 0,
+    'max_age' => 86400, // 24 horas
 
     'supports_credentials' => true,
 ];
