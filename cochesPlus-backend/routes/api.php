@@ -1,20 +1,22 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CocheController;
 use App\Http\Controllers\MarcaController;
-use Illuminate\Support\Facades\Broadcast;
 use App\Http\Controllers\MensajeController;
 use App\Http\Controllers\FavoritoController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ProvinciaController;
 use App\Http\Controllers\ValoracionController;
+use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\ConversacionController;
+use App\Http\Controllers\Admin\AdminAdsController;
+use App\Http\Controllers\Admin\AdminUsersController;
 use App\Http\Controllers\BroadcastingAuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Admin\AdminMessagesController;
 
 // Rutas de autenticación
 Route::post('/login', [AuthController::class, 'login']);
@@ -71,7 +73,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Rutas para verificación de documentos (solo admin)
     Route::put('/coches/{id}/verificar', [CocheController::class, 'verificarCoche']);
-    
 
     // Gestión de imágenes y documentos de coches
     Route::post('/coches/{id}/imagenes', [CocheController::class, 'addImage']);
@@ -117,4 +118,45 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/compras-sin-valorar', [ValoracionController::class, 'getComprasSinValorar']);
     Route::get('/user/valoraciones-realizadas', [ValoracionController::class, 'getValoracionesRealizadas']);
     Route::get('/user/estadisticas-vendedor', [ValoracionController::class, 'getEstadisticasVendedor']);
+});
+
+// Rutas de administración - Usando middleware de Spatie
+Route::middleware(['auth:sanctum'])->group(function () {
+    // Solo administradores pueden acceder a estas rutas
+    Route::middleware('role:admin')->prefix('admin')->group(function () {
+
+        // Panel de control principal
+        Route::get('/dashboard', [AdminController::class, 'panelControl']);
+
+        // Gestión de usuarios
+        Route::prefix('users')->group(function () {
+            Route::get('/', [AdminUsersController::class, 'listar']);
+            Route::get('/{id}', [AdminUsersController::class, 'mostrar']);
+            Route::post('/', [AdminUsersController::class, 'crear']);
+            Route::put('/{id}', [AdminUsersController::class, 'actualizar']);
+            Route::delete('/{id}', [AdminUsersController::class, 'eliminar']);
+        });
+
+        // Gestión de anuncios
+        Route::prefix('ads')->group(function () {
+            Route::get('/', [AdminAdsController::class, 'listar']);
+            Route::get('/{id}', [AdminAdsController::class, 'mostrar']);
+            Route::put('/{id}', [AdminAdsController::class, 'actualizar']);
+            Route::delete('/{id}', [AdminAdsController::class, 'eliminar']);
+            Route::post('/{id}/feature', [AdminAdsController::class, 'destacar']);
+        });
+
+        // Gestión de mensajes y conversaciones
+        Route::prefix('messages')->group(function () {
+            Route::get('/', [AdminMessagesController::class, 'listar']);
+            Route::get('/{id}', [AdminMessagesController::class, 'mostrar']);
+            Route::delete('/{id}', [AdminMessagesController::class, 'eliminar']);
+        });
+
+        Route::prefix('conversations')->group(function () {
+            Route::get('/', [AdminMessagesController::class, 'conversaciones']);
+            Route::get('/{id}/messages', [AdminMessagesController::class, 'mensajesConversacion']);
+            Route::post('/{id}/close', [AdminMessagesController::class, 'cerrarConversacion']);
+        });
+    });
 });
