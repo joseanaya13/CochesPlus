@@ -72,7 +72,9 @@ class AdminController extends Controller
         $anunciosActivos = Coche::where('vendido', false)->count();
         $anunciosVendidos = Coche::where('vendido', true)->count();
         $anunciosVerificados = Coche::where('verificado', true)->count();
-        $anunciosPendientes = Coche::where('verificado', false)->count();
+        $anunciosPendientes = Coche::where('verificado', false)
+                                   ->whereHas('documentos')
+                                   ->count();
 
         // Estadísticas de conversaciones
         $totalConversaciones = Conversacion::count();

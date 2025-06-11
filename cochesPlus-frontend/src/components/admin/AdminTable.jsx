@@ -53,7 +53,7 @@ const AdminTable = ({
                                 </th>
                             ))}
                             {actions.length > 0 && (
-                                <th className="px-6 py-3 text-right text-xs font-medium text-text-secondary dark:text-text-secondary uppercase tracking-wider">
+                                <th className="px-2 py-3 text-center text-xs font-medium text-text-secondary dark:text-text-secondary uppercase tracking-wider">
                                     Acciones
                                 </th>
                             )}
@@ -68,7 +68,7 @@ const AdminTable = ({
                                     </td>
                                 ))}
                                 {actions.length > 0 && (
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex justify-end space-x-2">
                                             {actions.map((action, actionIndex) => (
                                                 <Button
@@ -78,8 +78,10 @@ const AdminTable = ({
                                                     onClick={() => action.onClick(row)}
                                                     disabled={action.disabled && action.disabled(row)}
                                                 >
-                                                    {action.icon && <span className="mr-1">{action.icon}</span>}
-                                                    {action.label}
+                                                    <div className="flex items-center space-x-1">
+                                                        {action.icon && <span>{action.icon}</span>}
+                                                        {action.label && <span>{action.label}</span>}
+                                                    </div>
                                                 </Button>
                                             ))}
                                         </div>
@@ -91,8 +93,10 @@ const AdminTable = ({
                 </table>
             </div>
 
+            {console.log("Paginación:", pagination)}
+
             {/* Paginación */}
-            {pagination && pagination.totalPages > 1 && (
+            {pagination && (
                 <div className="bg-secondary-light/20 dark:bg-secondary-dark/20 px-6 py-3 border-t border-secondary-light dark:border-secondary-dark">
                     <div className="flex items-center justify-between">
                         <div className="text-sm text-text-secondary dark:text-text-secondary">
@@ -101,7 +105,7 @@ const AdminTable = ({
                         </div>
                         <div className="flex space-x-2">
                             <Button
-                                variant="secondary"
+                                variant="primary"
                                 className="text-xs px-3 py-1"
                                 onClick={() => onPageChange(pagination.currentPage - 1)}
                                 disabled={pagination.currentPage === 1}
@@ -109,7 +113,7 @@ const AdminTable = ({
                                 Anterior
                             </Button>
                             <Button
-                                variant="secondary"
+                                variant="primary"
                                 className="text-xs px-3 py-1"
                                 onClick={() => onPageChange(pagination.currentPage + 1)}
                                 disabled={pagination.currentPage >= pagination.totalPages}

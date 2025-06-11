@@ -37,7 +37,11 @@ class ModelosSeeder extends Seeder
             $this->command->info("Obteniendo modelos para {$marca->nombre}...");
 
             try {
-                $response = Http::get($this->apiUrl . urlencode($marca->nombre) . '?format=json');
+                // Configurar HTTP client para evitar problemas SSL
+                $response = Http::withOptions([
+                    'verify' => false, // Desactivar verificación SSL temporalmente
+                    'timeout' => 30,
+                ])->get($this->apiUrl . urlencode($marca->nombre) . '?format=json');
 
                 if ($response->successful()) {
                     $data = $response->json();
@@ -96,7 +100,40 @@ class ModelosSeeder extends Seeder
     {
         $this->command->info("Insertando modelos de respaldo para {$marcaNombre}...");
 
-        $modelosPorMarca = [];
+        // Modelos específicos por marca más realistas
+        $modelosPorMarca = [
+            'Alfa Romeo' => ['Giulia', 'Stelvio', 'Giulietta', 'MiTo', 'Tonale', '4C'],
+            'Audi' => ['A3', 'A4', 'A6', 'Q3', 'Q5', 'Q7', 'TT', 'A1'],
+            'BMW' => ['Serie 1', 'Serie 3', 'Serie 5', 'X1', 'X3', 'X5', 'Z4', 'i3'],
+            'Chevrolet' => ['Spark', 'Cruze', 'Malibu', 'Equinox', 'Tahoe', 'Camaro'],
+            'Citroën' => ['C3', 'C4', 'C5', 'Berlingo', 'Picasso', 'DS3'],
+            'Dacia' => ['Sandero', 'Duster', 'Logan', 'Lodgy', 'Dokker', 'Spring'],
+            'Ferrari' => ['488', 'F8', 'Portofino', 'Roma', 'SF90', 'California'],
+            'Fiat' => ['500', 'Panda', 'Punto', 'Tipo', 'Doblo', '500X'],
+            'Ford' => ['Fiesta', 'Focus', 'Mondeo', 'Kuga', 'Mustang', 'Transit'],
+            'Honda' => ['Civic', 'Accord', 'CR-V', 'HR-V', 'Jazz', 'Pilot'],
+            'Hyundai' => ['i10', 'i20', 'i30', 'Tucson', 'Santa Fe', 'Kona'],
+            'Jaguar' => ['XE', 'XF', 'F-PACE', 'E-PACE', 'I-PACE', 'F-TYPE'],
+            'Jeep' => ['Renegade', 'Compass', 'Cherokee', 'Grand Cherokee', 'Wrangler', 'Gladiator'],
+            'Kia' => ['Picanto', 'Rio', 'Ceed', 'Sportage', 'Sorento', 'Stonic'],
+            'Lamborghini' => ['Huracán', 'Aventador', 'Urus', 'Gallardo', 'Murciélago', 'Countach'],
+            'Land Rover' => ['Range Rover', 'Discovery', 'Defender', 'Evoque', 'Velar', 'Sport'],
+            'Lexus' => ['IS', 'ES', 'GS', 'LS', 'NX', 'RX'],
+            'Mazda' => ['Mazda2', 'Mazda3', 'Mazda6', 'CX-3', 'CX-5', 'MX-5'],
+            'Mercedes-Benz' => ['Clase A', 'Clase C', 'Clase E', 'GLA', 'GLC', 'GLE'],
+            'Mini' => ['Cooper', 'Countryman', 'Clubman', 'Cabrio', 'Paceman', 'Roadster'],
+            'Nissan' => ['Micra', 'Qashqai', 'X-Trail', 'Juke', 'Leaf', '370Z'],
+            'Opel' => ['Corsa', 'Astra', 'Insignia', 'Mokka', 'Crossland', 'Grandland'],
+            'Peugeot' => ['208', '308', '508', '2008', '3008', '5008'],
+            'Porsche' => ['911', 'Cayenne', 'Macan', 'Panamera', 'Boxster', 'Cayman'],
+            'Renault' => ['Clio', 'Megane', 'Scenic', 'Captur', 'Kadjar', 'Koleos'],
+            'Seat' => ['Ibiza', 'Leon', 'Ateca', 'Arona', 'Tarraco', 'Alhambra'],
+            'Skoda' => ['Fabia', 'Octavia', 'Superb', 'Karoq', 'Kodiaq', 'Kamiq'],
+            'Tesla' => ['Model 3', 'Model S', 'Model X', 'Model Y', 'Cybertruck', 'Roadster'],
+            'Toyota' => ['Yaris', 'Corolla', 'Camry', 'RAV4', 'Highlander', 'Prius'],
+            'Volkswagen' => ['Polo', 'Golf', 'Passat', 'Tiguan', 'Touareg', 'Arteon'],
+            'Volvo' => ['V40', 'V60', 'V90', 'XC40', 'XC60', 'XC90']
+        ];
 
         $modelos = $modelosPorMarca[$marcaNombre] ?? ['Modelo 1', 'Modelo 2', 'Modelo 3', 'Modelo 4', 'Modelo 5'];
 

@@ -33,7 +33,12 @@ import MyCars from './pages/seller/MyCars';
 
 // Nueva página de valoraciones
 import ValoracionesPage from './pages/ratings/ValoracionesPage';
+
+// Páginas de administración
 import VerifyDocuments from './pages/admin/VerifyDocuments';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminAds from './pages/admin/AdminAds';
+import AdminMessages from './pages/admin/AdminMessages';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -98,10 +103,21 @@ export default function App() {
             {/* <Route path="/faq" element={<FAQ />} /> */}
             <Route path="/privacidad" element={<PrivacyPolicy />} />
             <Route path="/terminos" element={<TermsOfService />} />
-            <Route path="/cookies" element={<PrivacyPolicy />} />            {/* Rutas protegidas */}
+            <Route path="/cookies" element={<PrivacyPolicy />} />
+
+            {/* Rutas de administración */}
             <Route path="/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
-            {/* <Route path="/dashboard/users" element={<AdminRoute><UserManagement /></AdminRoute>} /> */}
-            {/* <Route path="/dashboard/approvals" element={<AdminRoute><CarApprovals /></AdminRoute>} /> */}
+
+            {/* RF4: Gestionar Usuarios (Administrador) */}
+            <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+
+            {/* RF8: Gestionar Anuncios (Administrador) */}
+            <Route path="/admin/ads" element={<AdminRoute><AdminAds /></AdminRoute>} />
+
+            {/* RF15: Gestionar Mensajes (Administrador) */}
+            <Route path="/admin/messages" element={<AdminRoute><AdminMessages /></AdminRoute>} />
+
+            {/* Verificación de documentos (ya existente) */}
             <Route path="/admin/verificar-documentos" element={<AdminRoute><VerifyDocuments /></AdminRoute>} />
 
             {/* Rutas para vendedores */}

@@ -89,21 +89,20 @@ const VerifyDocuments = () => {
         <Layout>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold text-text-dark dark:text-text-light">
+                    <h1 className="text-2xl font-bold !text-text-dark">
                         Verificación de Documentos
                     </h1>
 
                     <div className="flex items-center space-x-4">
-                        <label htmlFor="filtro" className="text-sm text-text-secondary dark:text-text-secondary">
+                        <label htmlFor="filtro" className="text-sm text-text-dark dark:text-text-secondary">
                             Filtrar por:
                         </label>
                         <select
                             id="filtro"
-                            className="bg-background-light dark:bg-primary-dark border border-secondary-light dark:border-secondary-dark rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="text-text-dark dark:text-text-light bg-background-light dark:bg-primary-dark border border-secondary-light dark:border-secondary-dark rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                             value={filtro}
                             onChange={handleFiltroChange}
                         >
-                            <option value="todos">Todos</option>
                             <option value="verificados">Verificados</option>
                             <option value="no-verificados">No verificados</option>
                         </select>

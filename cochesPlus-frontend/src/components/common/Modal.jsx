@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import Button from './Button';
 
-const Modal = ({ isOpen, onClose, title, children, confirmAction, confirmText = 'Confirmar', cancelText = 'Cancelar' }) => {
+const Modal = ({ isOpen, onClose, title, children, confirmAction, confirmText, cancelText }) => {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -52,12 +52,16 @@ const Modal = ({ isOpen, onClose, title, children, confirmAction, confirmText = 
 
                 {/* Botones de acción */}
                 <div className="mt-6 flex justify-end space-x-4">
-                    <Button variant="primary" onClick={onClose}>
-                        {cancelText}
-                    </Button>
-                    <Button variant="primary" onClick={confirmAction}>
-                        {confirmText}
-                    </Button>
+                    {cancelText && (
+                        <Button variant="primary" onClick={onClose}>
+                            {cancelText}
+                        </Button>
+                    )}
+                    {confirmText && (
+                        <Button variant="primary" onClick={confirmAction}>
+                            {confirmText}
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>

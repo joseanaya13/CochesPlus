@@ -16,14 +16,14 @@ return [
                 'host' => env('PUSHER_HOST') ?: 'api-' . env('PUSHER_APP_CLUSTER', 'mt1') . '.pusher.com',
                 'port' => env('PUSHER_PORT', 443),
                 'scheme' => env('PUSHER_SCHEME', 'https'),
-                'curl_options' => [
-                    CURLOPT_SSL_VERIFYHOST => env('APP_ENV') === 'production' ? 2 : 0,
-                    CURLOPT_SSL_VERIFYPEER => env('APP_ENV') === 'production' ? true : false,
-                    CURLOPT_CONNECTTIMEOUT => 30,
-                    CURLOPT_TIMEOUT => 60,
-                    CURLOPT_DNS_CACHE_TIMEOUT => 300,
-                    CURLOPT_FRESH_CONNECT => true,
-                ]
+                // 'curl_options' => [
+                //     CURLOPT_SSL_VERIFYHOST => env('APP_ENV') === 'production' ? 2 : 0,
+                //     CURLOPT_SSL_VERIFYPEER => env('APP_ENV') === 'production' ? true : false,
+                //     CURLOPT_CONNECTTIMEOUT => 30,
+                //     CURLOPT_TIMEOUT => 60,
+                //     CURLOPT_DNS_CACHE_TIMEOUT => 300,
+                //     CURLOPT_FRESH_CONNECT => true,
+                // ]
             ],
         ],
 

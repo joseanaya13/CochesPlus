@@ -21,8 +21,6 @@ const AdminMessages = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
-    const [userIdFilter, setUserIdFilter] = useState('');
-    const [conversationIdFilter, setConversationIdFilter] = useState('');
 
     // Modales
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -40,7 +38,7 @@ const AdminMessages = () => {
         } else {
             loadConversations();
         }
-    }, [activeTab, currentPage, searchTerm, userIdFilter, conversationIdFilter]);
+    }, [activeTab, currentPage, searchTerm]);
 
     const loadMessages = async () => {
         try {
@@ -49,8 +47,6 @@ const AdminMessages = () => {
                 page: currentPage,
                 per_page: 20,
                 ...(searchTerm && { search: searchTerm }),
-                ...(userIdFilter && { user_id: userIdFilter }),
-                ...(conversationIdFilter && { conversation_id: conversationIdFilter })
             };
 
             const response = await adminService.getMessages(params);
@@ -312,7 +308,7 @@ const AdminMessages = () => {
         <Layout>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold text-text-dark dark:text-text-light">
+                    <h1 className="text-2xl font-bold !text-text-dark">
                         Gestión de Mensajes y Conversaciones
                     </h1>
                 </div>
@@ -371,30 +367,16 @@ const AdminMessages = () => {
                                     value={searchTerm}
                                     onChange={handleSearch}
                                 />
-                                <InputField
-                                    label="ID Usuario"
-                                    placeholder="ID del usuario..."
-                                    value={userIdFilter}
-                                    onChange={(e) => setUserIdFilter(e.target.value)}
-                                />
-                                <InputField
-                                    label="ID Conversación"
-                                    placeholder="ID de conversación..."
-                                    value={conversationIdFilter}
-                                    onChange={(e) => setConversationIdFilter(e.target.value)}
-                                />
-                                <div className="flex items-end">
+                                <div className="flex items-center">
                                     <Button
-                                        variant="secondary"
+                                        variant="primary"
                                         onClick={() => {
                                             setSearchTerm('');
-                                            setUserIdFilter('');
-                                            setConversationIdFilter('');
                                             setCurrentPage(1);
                                         }}
                                         className="w-full"
                                     >
-                                        Limpiar filtros
+                                        Limpiar filtro
                                     </Button>
                                 </div>
                             </div>

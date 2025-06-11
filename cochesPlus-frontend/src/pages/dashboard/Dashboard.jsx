@@ -86,7 +86,7 @@ const Dashboard = () => {
                     <AdminStats stats={stats} loading={loading} />
 
                     {/* Sección de gestión rápida */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
                         {/* Gestión de Usuarios */}
                         <div className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300">
                             <div className="p-6">
@@ -141,6 +141,33 @@ const Dashboard = () => {
                             </div>
                         </div>
 
+                        {/* Gestión de Anuncios */}
+                        <div className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300">
+                            <div className="p-6">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="h-12 w-12 flex items-center justify-center rounded-full bg-success/10 text-success">
+                                        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                        </svg>
+                                    </div>
+                                    <span className="text-xs font-medium px-2 py-1 rounded bg-success/10 text-success">
+                                        {stats?.anuncios?.total || 0} anuncios
+                                    </span>
+                                </div>
+                                <h3 className="text-lg font-semibold text-text-dark dark:text-text-light mb-2">
+                                    Gestión de Anuncios
+                                </h3>
+                                <p className="text-text-secondary text-sm mb-4">
+                                    Administra, edita y modera los anuncios de vehículos de la plataforma.
+                                </p>
+                                <Link to="/admin/ads" className="block">
+                                    <Button variant="primary" fullWidth>
+                                        Gestionar anuncios
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
+
                         {/* Verificación de documentos */}
                         <div className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300">
                             <div className="p-6">
@@ -174,96 +201,6 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    {/* Actividad reciente */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                        {/* Gráfico de usuarios */}
-                        <div className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md p-6">
-                            <h3 className="text-lg font-semibold text-text-dark dark:text-text-light mb-4">
-                                Usuarios registrados (última semana)
-                            </h3>
-                            {stats?.estadisticas_recientes?.usuarios_ultima_semana ? (
-                                <div className="flex items-end space-x-2 h-32">
-                                    {stats.estadisticas_recientes.usuarios_ultima_semana.map((count, index) => (
-                                        <div key={index} className="flex-1 flex flex-col items-center">
-                                            <div
-                                                className="w-full bg-primary/20 rounded-t-sm"
-                                                style={{
-                                                    height: `${Math.max((count / Math.max(...stats.estadisticas_recientes.usuarios_ultima_semana)) * 100, 10)}%`
-                                                }}
-                                            >
-                                                <div
-                                                    className="w-full bg-primary rounded-t-sm"
-                                                    style={{
-                                                        height: `${Math.max((count / Math.max(...stats.estadisticas_recientes.usuarios_ultima_semana)) * 100, 10)}%`
-                                                    }}
-                                                ></div>
-                                            </div>
-                                            <span className="text-xs text-text-secondary mt-1">{count}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="h-32 flex items-center justify-center text-text-secondary">
-                                    No hay datos disponibles
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Gráfico de anuncios */}
-                        <div className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md p-6">
-                            <h3 className="text-lg font-semibold text-text-dark dark:text-text-light mb-4">
-                                Anuncios publicados (última semana)
-                            </h3>
-                            {stats?.estadisticas_recientes?.anuncios_ultima_semana ? (
-                                <div className="flex items-end space-x-2 h-32">
-                                    {stats.estadisticas_recientes.anuncios_ultima_semana.map((count, index) => (
-                                        <div key={index} className="flex-1 flex flex-col items-center">
-                                            <div
-                                                className="w-full bg-success/20 rounded-t-sm"
-                                                style={{
-                                                    height: `${Math.max((count / Math.max(...stats.estadisticas_recientes.anuncios_ultima_semana)) * 100, 10)}%`
-                                                }}
-                                            >
-                                                <div
-                                                    className="w-full bg-success rounded-t-sm"
-                                                    style={{
-                                                        height: `${Math.max((count / Math.max(...stats.estadisticas_recientes.anuncios_ultima_semana)) * 100, 10)}%`
-                                                    }}
-                                                ></div>
-                                            </div>
-                                            <span className="text-xs text-text-secondary mt-1">{count}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="h-32 flex items-center justify-center text-text-secondary">
-                                    No hay datos disponibles
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Distribución de roles */}
-                    {stats?.usuarios?.por_rol && (
-                        <div className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md p-6 mb-8">
-                            <h3 className="text-lg font-semibold text-text-dark dark:text-text-light mb-4">
-                                Distribución de usuarios por rol
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {Object.entries(stats.usuarios.por_rol).map(([rol, cantidad]) => (
-                                    <div key={rol} className="text-center p-4 bg-secondary-light/20 dark:bg-secondary-dark/20 rounded-lg">
-                                        <div className="text-2xl font-bold text-text-dark dark:text-text-light">
-                                            {cantidad}
-                                        </div>
-                                        <div className="text-sm text-text-secondary capitalize">
-                                            {rol.replace('_', ' ')}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
                     {/* Sección de bienvenida */}
                     <div className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md p-6">
                         <h2 className="text-xl font-bold text-text-dark dark:text-text-light mb-4">
@@ -279,24 +216,6 @@ const Dashboard = () => {
                                     <li>• Gestión completa de usuarios y roles</li>
                                     <li>• Supervisión de mensajes y conversaciones</li>
                                     <li>• Verificación de documentos de vehículos</li>
-                                    <li>• Estadísticas en tiempo real</li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h4 className="font-semibold text-text-dark dark:text-text-light mb-2">Estado del sistema:</h4>
-                                <ul className="text-sm space-y-1">
-                                    <li className="flex items-center">
-                                        <span className="w-2 h-2 bg-success rounded-full mr-2"></span>
-                                        <span className="text-text-secondary">Sistema operativo</span>
-                                    </li>
-                                    <li className="flex items-center">
-                                        <span className="w-2 h-2 bg-success rounded-full mr-2"></span>
-                                        <span className="text-text-secondary">Base de datos conectada</span>
-                                    </li>
-                                    <li className="flex items-center">
-                                        <span className="w-2 h-2 bg-success rounded-full mr-2"></span>
-                                        <span className="text-text-secondary">Mensajería en tiempo real activa</span>
-                                    </li>
                                 </ul>
                             </div>
                         </div>

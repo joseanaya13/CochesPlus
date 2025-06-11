@@ -122,20 +122,43 @@ const AdminUsers = () => {
 
     const handleFormChange = (e) => {
         const { name, value } = e.target;
+        // Mapear nombres de campos del modal a propiedades del formData
+        const fieldName = name === 'user_email' ? 'email' : name;
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [fieldName]: value
         }));
     };
 
     const handleRolesChange = (e) => {
         const value = e.target.value;
-        setFormData(prev => ({
-            ...prev,
-            roles: prev.roles.includes(value)
-                ? prev.roles.filter(role => role !== value)
-                : [...prev.roles, value]
-        }));
+        setFormData(prev => {
+            let newRoles = [...prev.roles];
+
+            if (prev.roles.includes(value)) {
+                // Si está marcado, lo desmarcamos
+                newRoles = newRoles.filter(role => role !== value);
+
+                // Si desmarcamos vendedor o comprador, también desmarcamos el otro
+                if (value === 'vendedor' || value === 'comprador') {
+                    newRoles = newRoles.filter(role => role !== 'vendedor' && role !== 'comprador');
+                }
+            } else {
+                // Si no está marcado, lo marcamos
+                newRoles.push(value);
+
+                // Si marcamos vendedor o comprador, automáticamente marcamos ambos
+                if (value === 'vendedor' || value === 'comprador') {
+                    if (!newRoles.includes('vendedor')) newRoles.push('vendedor');
+                    if (!newRoles.includes('comprador')) newRoles.push('comprador');
+                }
+            }
+
+            return {
+                ...prev,
+                roles: newRoles
+            };
+        });
     };
 
     const submitCreateUser = async () => {
@@ -255,7 +278,7 @@ const AdminUsers = () => {
         <Layout>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold text-text-dark dark:text-text-light">
+                    <h1 className="text-2xl font-bold !text-text-dark">
                         Gestión de Usuarios
                     </h1>
                     <Button onClick={handleCreateUser} className="flex items-center">
@@ -286,13 +309,15 @@ const AdminUsers = () => {
                 )}
 
                 {/* Filtros */}
-                <div className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md p-6 mb-6">
+                <div className="bg-primary-light dark:bg-primary-dark rounded-lg shadow-md p-6 mb-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <InputField
                             label="Buscar usuarios"
                             placeholder="Nombre o email..."
                             value={searchTerm}
                             onChange={handleSearch}
+                            autoComplete="off"
+                            name="search-users"
                         />
                         <SelectField
                             label="Filtrar por rol"
@@ -303,9 +328,9 @@ const AdminUsers = () => {
                                 ...roleOptions
                             ]}
                         />
-                        <div className="flex items-end">
+                        <div className="flex items-center">
                             <Button
-                                variant="secondary"
+                                variant="primary"
                                 onClick={() => {
                                     setSearchTerm('');
                                     setRoleFilter('');
@@ -349,14 +374,16 @@ const AdminUsers = () => {
                             name="nombre"
                             value={formData.nombre}
                             onChange={handleFormChange}
+                            autoComplete="off"
                             required
                         />
                         <InputField
                             label="Email"
-                            name="email"
+                            name="user_email"
                             type="email"
                             value={formData.email}
                             onChange={handleFormChange}
+                            autoComplete="off"
                             required
                         />
                         <InputField
@@ -365,6 +392,7 @@ const AdminUsers = () => {
                             type="password"
                             value={formData.password}
                             onChange={handleFormChange}
+                            autoComplete="new-password"
                             required
                         />
                         <InputField
@@ -416,14 +444,18 @@ const AdminUsers = () => {
                             name="nombre"
                             value={formData.nombre}
                             onChange={handleFormChange}
+                            autoComplete="off"
+                            autoCorrect="off"
+                            spellCheck="false"
                             required
                         />
                         <InputField
                             label="Email"
-                            name="email"
+                            name="user_email"
                             type="email"
                             value={formData.email}
                             onChange={handleFormChange}
+                            autoComplete="off"
                             required
                         />
                         <InputField
@@ -433,6 +465,7 @@ const AdminUsers = () => {
                             value={formData.password}
                             onChange={handleFormChange}
                             placeholder="Dejar vacío para mantener actual"
+                            autoComplete="new-password"
                         />
                         <InputField
                             label="Teléfono"

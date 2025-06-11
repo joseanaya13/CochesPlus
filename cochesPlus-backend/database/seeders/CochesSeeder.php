@@ -193,13 +193,19 @@ class CochesSeeder extends Seeder
 
                 try {
                     // Descargar la imagen y guardarla en storage/app/public/coches/{id_coche}
-                    $contenido = file_get_contents($imagenUrl);
+                    $context = stream_context_create([
+                        'ssl' => [
+                            'verify_peer' => false,
+                            'verify_peer_name' => false,
+                        ],
+                    ]);
+                    $contenido = file_get_contents($imagenUrl, false, $context);
                     Storage::disk('public')->put($rutaCompleta, $contenido);
 
                     // Crear registro en la base de datos
                     Imagen::create([
                         'id_coche' => $coche->id,
-                        'ruta' => 'storage/' . $rutaCompleta
+                        'ruta' => "storage/{$rutaCompleta}"
                     ]);
 
                     $this->command->info("Imagen guardada: {$nombreArchivo} para coche ID: {$coche->id}");
