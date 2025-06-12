@@ -6,68 +6,134 @@ use App\Models\Coche;
 use App\Models\Imagen;
 use App\Models\Documento;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
 
 class CocheController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Coche::with(['usuario', 'marca', 'modelo', 'categoria', 'provincia', 'imagenes', 'documentos']);
+        try {
+            // Log para debug
+            Log::info('CocheController: Parámetros recibidos', $request->all());
 
-        // Filtros directos (coincidencia exacta)
-        $filters = [
-            'id_marca',
-            'id_modelo',
-            'id_categoria',
-            'id_provincia',
-            'combustible',
-            'transmision',
-            'plazas',
-            'puertas'
-        ];
+            $query = Coche::with(['usuario', 'marca', 'modelo', 'categoria', 'provincia', 'imagenes', 'documentos']);
 
-        foreach ($filters as $field) {
-            if ($request->has($field)) {
-                $query->where($field, $request->$field);
+            // Filtros directos (coincidencia exacta) - CORREGIDO
+            $filters = [
+                'id_marca',
+                'id_modelo',
+                'id_categoria',
+                'id_provincia',
+                'combustible',
+                'transmision',
+                'plazas',
+                'puertas'
+            ];
+
+            foreach ($filters as $field) {
+                if ($request->filled($field)) { // Cambio: usar filled() en lugar de has()
+                    $value = $request->get($field);
+                    // Validar que el valor no esté vacío
+                    if (!empty($value) && $value !== '0' && $value !== 0) {
+                        $query->where($field, $value);
+                        Log::info("Aplicando filtro directo: {$field} = {$value}");
+                    }
+                }
             }
-        }
 
-        // Filtros de rango (mínimo y máximo)
-        $ranges = [
-            'precio' => ['precio_min', 'precio_max'],
-            'anio' => ['anio_min', 'anio_max'],
-            'kilometraje' => ['km_min', 'km_max'],
-            'potencia' => ['potencia_min', 'potencia_max']
-        ];
+            // Filtros de rango (mínimo y máximo) - MEJORADO
+            $ranges = [
+                'precio' => ['precio_min', 'precio_max'],
+                'anio' => ['anio_min', 'anio_max'],
+                'kilometraje' => ['km_min', 'km_max'],
+                'potencia' => ['potencia_min', 'potencia_max']
+            ];
 
-        foreach ($ranges as $field => [$min, $max]) {
-            if ($request->has($min)) {
-                $query->where($field, '>=', $request->$min);
+            foreach ($ranges as $field => [$min, $max]) {
+                if ($request->filled($min)) {
+                    $minValue = $request->get($min);
+                    if (is_numeric($minValue) && $minValue > 0) {
+                        $query->where($field, '>=', $minValue);
+                        Log::info("Aplicando filtro mínimo: {$field} >= {$minValue}");
+                    }
+                }
+                if ($request->filled($max)) {
+                    $maxValue = $request->get($max);
+                    if (is_numeric($maxValue) && $maxValue > 0) {
+                        $query->where($field, '<=', $maxValue);
+                        Log::info("Aplicando filtro máximo: {$field} <= {$maxValue}");
+                    }
+                }
             }
-            if ($request->has($max)) {
-                $query->where($field, '<=', $request->$max);
+
+            // Filtro de verificado - CORREGIDO
+            if ($request->filled('verificado')) {
+                $verificado = $request->get('verificado');
+                if ($verificado === 'true' || $verificado === '1' || $verificado === 1) {
+                    $query->where('verificado', true);
+                    Log::info("Aplicando filtro: solo verificados");
+                } elseif ($verificado === 'false' || $verificado === '0' || $verificado === 0) {
+                    $query->where('verificado', false);
+                    Log::info("Aplicando filtro: solo no verificados");
+                }
             }
+
+            // Filtro de coches vendidos - CORREGIDO
+            if (!$request->filled('incluir_vendidos') || $request->get('incluir_vendidos') !== 'true') {
+                $query->where('vendido', false); // Cambio: usar false en lugar de 0
+                Log::info("Aplicando filtro: excluir vendidos");
+            } else {
+                Log::info("Incluyendo coches vendidos");
+            }
+
+            // Ordenación - MEJORADO
+            $orderBy = $request->get('order_by', 'created_at'); // Cambio: usar created_at por defecto
+            $orderDir = $request->get('order_dir', 'desc');
+
+            // Mapear campos de ordenación
+            $orderFieldMap = [
+                'fecha_publicacion' => 'created_at',
+                'precio' => 'precio',
+                'anio' => 'anio',
+                'kilometraje' => 'kilometraje',
+                'potencia' => 'potencia'
+            ];
+
+            $actualOrderField = $orderFieldMap[$orderBy] ?? 'created_at';
+            $allowedOrderDir = in_array(strtolower($orderDir), ['asc', 'desc']) ? $orderDir : 'desc';
+
+            $query->orderBy($actualOrderField, $allowedOrderDir);
+            Log::info("Aplicando ordenación: {$actualOrderField} {$allowedOrderDir}");
+
+            // Paginación
+            $perPage = $request->get('per_page', 12);
+            $perPage = min(max((int)$perPage, 1), 50); // Entre 1 y 50
+
+            // Obtener resultados
+            $result = $query->paginate($perPage);
+
+            Log::info('CocheController: Consulta SQL ejecutada', [
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings(),
+                'total_results' => $result->total()
+            ]);
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            Log::error('CocheController: Error en index', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all()
+            ]);
+
+            return response()->json([
+                'error' => 'Error al obtener los coches',
+                'message' => config('app.debug') ? $e->getMessage() : 'Error interno del servidor'
+            ], 500);
         }
-
-        // Filtros especiales
-        if ($request->has('verificado')) {
-            $query->where('verificado', $request->verificado === 'true');
-        }
-
-        if (!$request->has('incluir_vendidos') || $request->incluir_vendidos !== 'true') {
-            $query->where('vendido', 0);
-        }
-
-        // Ordenación
-        $orderBy = $request->get('order_by', 'fecha_publicacion');
-        $orderDir = $request->get('order_dir', 'desc');
-        $allowedOrderFields = ['fecha_publicacion', 'precio', 'anio', 'kilometraje', 'potencia'];
-
-        $query->orderBy(in_array($orderBy, $allowedOrderFields) ? $orderBy : 'fecha_publicacion', $orderDir);
-
-        return response()->json($query->paginate($request->get('per_page', 12)));
     }
 
     public function getUserCars(Request $request)
@@ -424,7 +490,7 @@ class CocheController extends Controller
 
     /**
      * Elimina archivos del almacenamiento y la base de datos
-     */    
+     */
     private function eliminarArchivo($archivos)
     {
         if (!$archivos) {

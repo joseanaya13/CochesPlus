@@ -54,8 +54,101 @@ const ExploreCars = () => {
         order_dir: 'desc'
     });
 
+    // Estado para los filtros aplicados
+    const [appliedFilters, setAppliedFilters] = useState({ ...filters });
+
+    // Usar debounce automático para mejor UX
     const debouncedFilters = useDebounce(filters, 500);
 
+    // Función para contar filtros activos
+    const getActiveFiltersCount = () => {
+        return Object.keys(debouncedFilters).filter(key => {
+            const value = debouncedFilters[key];
+            return value !== '' && value !== null && value !== undefined &&
+                key !== 'order_by' && key !== 'order_dir';
+        }).length;
+    };
+
+    // Función para obtener filtros activos con sus valores legibles
+    const getActiveFiltersDisplay = () => {
+        const activeFilters = [];
+
+        if (debouncedFilters.id_marca) {
+            const marca = marcas.find(m => m.id == debouncedFilters.id_marca);
+            if (marca) activeFilters.push({ key: 'id_marca', label: 'Marca', value: marca.nombre });
+        }
+
+        if (debouncedFilters.id_modelo) {
+            const modelo = models.find(m => m.id == debouncedFilters.id_modelo);
+            if (modelo) activeFilters.push({ key: 'id_modelo', label: 'Modelo', value: modelo.nombre });
+        }
+
+        if (debouncedFilters.precio_min) {
+            activeFilters.push({ key: 'precio_min', label: 'Precio mín.', value: `${debouncedFilters.precio_min}€` });
+        }
+
+        if (debouncedFilters.precio_max) {
+            activeFilters.push({ key: 'precio_max', label: 'Precio máx.', value: `${debouncedFilters.precio_max}€` });
+        }
+
+        if (debouncedFilters.anio_min) {
+            activeFilters.push({ key: 'anio_min', label: 'Año mín.', value: debouncedFilters.anio_min });
+        }
+
+        if (debouncedFilters.anio_max) {
+            activeFilters.push({ key: 'anio_max', label: 'Año máx.', value: debouncedFilters.anio_max });
+        }
+
+        if (debouncedFilters.km_min) {
+            activeFilters.push({ key: 'km_min', label: 'Km mín.', value: `${debouncedFilters.km_min} km` });
+        }
+
+        if (debouncedFilters.km_max) {
+            activeFilters.push({ key: 'km_max', label: 'Km máx.', value: `${debouncedFilters.km_max} km` });
+        }
+
+        if (debouncedFilters.id_categoria) {
+            const categoria = categorias.find(c => c.id == debouncedFilters.id_categoria);
+            if (categoria) activeFilters.push({ key: 'id_categoria', label: 'Categoría', value: categoria.nombre });
+        }
+
+        if (debouncedFilters.id_provincia) {
+            const provincia = provincias.find(p => p.id == debouncedFilters.id_provincia);
+            if (provincia) activeFilters.push({ key: 'id_provincia', label: 'Provincia', value: provincia.nombre });
+        }
+
+        if (debouncedFilters.combustible) {
+            activeFilters.push({ key: 'combustible', label: 'Combustible', value: debouncedFilters.combustible });
+        }
+
+        if (debouncedFilters.transmision) {
+            activeFilters.push({ key: 'transmision', label: 'Transmisión', value: debouncedFilters.transmision });
+        }
+
+        if (debouncedFilters.plazas) {
+            activeFilters.push({ key: 'plazas', label: 'Plazas', value: debouncedFilters.plazas });
+        }
+
+        if (debouncedFilters.puertas) {
+            activeFilters.push({ key: 'puertas', label: 'Puertas', value: debouncedFilters.puertas });
+        }
+
+        if (debouncedFilters.potencia_min) {
+            activeFilters.push({ key: 'potencia_min', label: 'Potencia mín.', value: `${debouncedFilters.potencia_min} CV` });
+        }
+
+        if (debouncedFilters.potencia_max) {
+            activeFilters.push({ key: 'potencia_max', label: 'Potencia máx.', value: `${debouncedFilters.potencia_max} CV` });
+        }
+
+        if (debouncedFilters.verificado) {
+            activeFilters.push({ key: 'verificado', label: 'Verificado', value: debouncedFilters.verificado === 'true' ? 'Sí' : 'No' });
+        }
+
+        return activeFilters;
+    };
+
+    // Resto del código existente...
     useEffect(() => {
         const fetchMarcas = async () => {
             try {
@@ -68,6 +161,7 @@ const ExploreCars = () => {
 
         fetchMarcas();
     }, []);
+
     useEffect(() => {
         const fetchModelos = async () => {
             if (filters.id_marca) {
@@ -87,13 +181,11 @@ const ExploreCars = () => {
 
     // Leer parámetros de URL al iniciar el componente
     useEffect(() => {
-        // Solo se ejecuta cuando se monta el componente
         if (isFirstRender.current) {
             isFirstRender.current = false;
             const initialFilters = { ...filters };
             let hasUrlParams = false;
 
-            // Recorrer todos los parámetros de URL y aplicarlos a los filtros
             for (const [key, value] of searchParams.entries()) {
                 if (key in initialFilters && value) {
                     initialFilters[key] = value;
@@ -102,29 +194,25 @@ const ExploreCars = () => {
                 }
             }
 
-            // Solo actualizar los filtros si hay parámetros en la URL
             if (hasUrlParams) {
                 console.log('Filtros iniciales aplicados desde URL:', initialFilters);
                 setFilters(initialFilters);
                 filtersAppliedFromUrl.current = true;
             } else {
-                // Si no hay filtros en la URL, marcamos que estamos listos para cargar
                 initialLoadComplete.current = true;
             }
         }
-    }, []); // Se ejecuta solo al montar el componente
+    }, [filters, searchParams]);
 
     useEffect(() => {
-        // Cuando se actualizan los filtros desde URL, marcamos la carga completa
         if (filtersAppliedFromUrl.current && !initialLoadComplete.current) {
             console.log('Filtros aplicados desde URL, marcando carga inicial como completa');
             initialLoadComplete.current = true;
         }
     }, [filters]);
 
-    // Función para cargar coches con los filtros actuales
+    // Función para cargar coches con los filtros debounced
     const fetchCoches = useCallback(async () => {
-        // No cargar coches hasta que los filtros de URL se hayan aplicado si es necesario
         if (filtersAppliedFromUrl.current && !initialLoadComplete.current) {
             console.log('Esperando a que se apliquen los filtros de URL antes de cargar coches');
             return;
@@ -227,7 +315,48 @@ const ExploreCars = () => {
         }
     };
 
-    const applyFilters = () => {
+    // Función para limpiar todos los filtros
+    const clearAllFilters = () => {
+        const clearedFilters = {
+            id_marca: '',
+            id_modelo: '',
+            precio_min: '',
+            precio_max: '',
+            anio_min: '',
+            anio_max: '',
+            km_min: '',
+            km_max: '',
+            potencia_min: '',
+            potencia_max: '',
+            id_categoria: '',
+            id_provincia: '',
+            combustible: '',
+            transmision: '',
+            plazas: '',
+            puertas: '',
+            verificado: '',
+            order_by: 'fecha_publicacion',
+            order_dir: 'desc'
+        };
+        setFilters(clearedFilters);
+        setPaginacion({
+            ...paginacion,
+            currentPage: 1
+        });
+    };
+
+    // Función para eliminar un filtro específico
+    const removeFilter = (filterKey) => {
+        const newFilters = { ...filters };
+
+        // Si es marca, también limpiar modelo
+        if (filterKey === 'id_marca') {
+            newFilters.id_modelo = '';
+        }
+
+        newFilters[filterKey] = '';
+
+        setFilters(newFilters);
         setPaginacion({
             ...paginacion,
             currentPage: 1
@@ -280,13 +409,24 @@ const ExploreCars = () => {
         }
     };
 
+
     return (
         <Layout>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                     {/* Panel de filtros */}
                     <div className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md p-6">
-                        <h2 className="text-xl font-bold text-text-dark dark:text-text-light mb-4">Filtros</h2>
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-bold text-text-dark dark:text-text-light">Filtros</h2>
+                            {getActiveFiltersCount() > 0 && (
+                                <button
+                                    onClick={clearAllFilters}
+                                    className="text-sm text-error hover:text-error-dark underline"
+                                >
+                                    Limpiar todo
+                                </button>
+                            )}
+                        </div>
 
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-text-dark dark:text-text-light mb-1">
@@ -378,6 +518,7 @@ const ExploreCars = () => {
                             <div className="grid grid-cols-2 gap-2">
                                 <input
                                     type="number"
+                                    name="anio_min"
                                     value={filters.anio_min}
                                     onChange={handleFilterChange}
                                     placeholder="Desde"
@@ -389,6 +530,30 @@ const ExploreCars = () => {
                                     value={filters.anio_max}
                                     onChange={handleFilterChange}
                                     placeholder="Hasta"
+                                    className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-text-dark dark:text-text-light mb-1">
+                                Kilómetros
+                            </label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <input
+                                    type="number"
+                                    name="km_min"
+                                    value={filters.km_min}
+                                    onChange={handleFilterChange}
+                                    placeholder="Min km"
+                                    className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
+                                />
+                                <input
+                                    type="number"
+                                    name="km_max"
+                                    value={filters.km_max}
+                                    onChange={handleFilterChange}
+                                    placeholder="Max km"
                                     className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
                                 />
                             </div>
@@ -506,13 +671,21 @@ const ExploreCars = () => {
                             </select>
                         </div>
 
-                        <Button
-                            variant="primary"
-                            onClick={applyFilters}
-                            fullWidth
-                        >
-                            Aplicar Filtros
-                        </Button>
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-text-dark dark:text-text-light mb-1">
+                                Solo verificados
+                            </label>
+                            <select
+                                name="verificado"
+                                value={filters.verificado}
+                                onChange={handleFilterChange}
+                                className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
+                            >
+                                <option value="">Todos</option>
+                                <option value="true">Solo verificados</option>
+                                <option value="false">No verificados</option>
+                            </select>
+                        </div>
                     </div>
 
                     {/* Lista de coches */}
@@ -527,6 +700,40 @@ const ExploreCars = () => {
                             />
                         )}
 
+                        {/* Panel de filtros activos */}
+                        {getActiveFiltersCount() > 0 && (
+                            <div className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md p-4 mb-6">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-sm font-medium text-text-dark dark:text-text-light">
+                                        Filtros activos:
+                                    </span>
+                                    {getActiveFiltersDisplay().map((filter, index) => (
+                                        <span
+                                            key={index}
+                                            className="inline-flex items-center bg-primary/10 text-primary text-xs font-medium px-2.5 py-0.5 rounded-full"
+                                        >
+                                            {filter.label}: {filter.value}
+                                            <button
+                                                onClick={() => removeFilter(filter.key)}
+                                                className="ml-1 text-primary hover:text-primary-dark"
+                                                aria-label={`Eliminar filtro ${filter.label}`}
+                                            >
+                                                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </span>
+                                    ))}
+                                    <button
+                                        onClick={clearAllFilters}
+                                        className="text-xs text-error hover:text-error-dark underline ml-2"
+                                    >
+                                        Limpiar todo
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Opciones de ordenación */}
                         <div className="flex justify-between items-center mb-6">
                             <p className="text-text-dark dark:text-text-secondary">
@@ -536,7 +743,7 @@ const ExploreCars = () => {
                                 <label className="text-sm text-text-dark dark:text-text-secondary mr-2">Ordenar por:</label>
                                 <select
                                     name="order_by"
-                                    value={filters.order_by}
+                                    value={appliedFilters.order_by}
                                     onChange={(e) => {
                                         const value = e.target.value;
                                         let orderDir = 'desc';
@@ -545,11 +752,14 @@ const ExploreCars = () => {
                                             orderDir = 'asc';
                                         }
 
-                                        setFilters({
-                                            ...filters,
+                                        const newFilters = {
+                                            ...appliedFilters,
                                             order_by: value,
                                             order_dir: orderDir
-                                        });
+                                        };
+
+                                        setFilters(newFilters);
+                                        setAppliedFilters(newFilters);
                                     }}
                                     className="rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
                                 >
@@ -562,8 +772,12 @@ const ExploreCars = () => {
                                 {/* Selector de dirección de ordenamiento */}
                                 <select
                                     name="order_dir"
-                                    value={filters.order_dir}
-                                    onChange={(e) => setFilters({ ...filters, order_dir: e.target.value })}
+                                    value={appliedFilters.order_dir}
+                                    onChange={(e) => {
+                                        const newFilters = { ...appliedFilters, order_dir: e.target.value };
+                                        setFilters(newFilters);
+                                        setAppliedFilters(newFilters);
+                                    }}
                                     className="ml-2 rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
                                 >
                                     <option value="asc">Ascendente</option>

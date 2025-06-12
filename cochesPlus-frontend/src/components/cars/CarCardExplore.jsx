@@ -38,7 +38,11 @@ const CarCardExplore = ({
                     )}
 
                     {/* Provincia */}
-                    <div className="absolute bottom-3 left-3 bg-primary-dark/80 dark:bg-primary/80 text-text-light text-xs px-2 py-1 rounded-md">
+                    <div className="absolute bottom-3 left-3 bg-primary-dark/80 dark:bg-primary/80 text-text-light text-xs px-2 py-1 rounded-md flex items-center">
+                        <svg className="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
                         {coche.provincia?.nombre || 'España'}
                     </div>
 
@@ -51,34 +55,45 @@ const CarCardExplore = ({
 
             <div className="p-4">
                 <div className="flex justify-between items-start">
-                    <div>
+                    <div className="flex-1">
                         {/* Marca y modelo */}
                         <h3 className="text-lg font-bold text-text-dark dark:text-text-light truncate">
                             {coche.marca.nombre}
                         </h3>
-                        <p className="text-text-dark dark:text-text-light truncate">
+                        <p className="text-text-dark dark:text-text-light truncate mb-3">
                             {coche.modelo.nombre}
                         </p>
 
-                        {/* Características clave */}
-                        <div className="mt-2 flex flex-wrap gap-3 text-xs text-secondary dark:text-text-secondary">
-                            <div className="flex items-center">
-                                <svg className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                        {/* Características clave con iconos */}
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="flex items-center text-xs text-secondary dark:text-text-secondary">
+                                <svg className="h-4 w-4 mr-1.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
-                                {coche.anio}
+                                <span className="font-medium">{coche.anio}</span>
                             </div>
-                            <div className="flex items-center">
-                                <svg className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+
+                            <div className="flex items-center text-xs text-secondary dark:text-text-secondary">
+                                <svg className="h-4 w-4 mr-1.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                                 </svg>
-                                {coche.kilometraje.toLocaleString()} km
+                                <span className="font-medium">{coche.kilometraje.toLocaleString()} km</span>
                             </div>
-                            <div className="flex items-center">
-                                <svg className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+
+                            <div className="flex items-center text-xs text-secondary dark:text-text-secondary">
+                                <svg className="h-4 w-4 mr-1.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
                                 </svg>
-                                {coche.combustible}
+                                <span className="font-medium">{coche.combustible}</span>
+                            </div>
+
+                            <div className="flex items-center text-xs text-secondary dark:text-text-secondary">
+                                <svg className="h-4 w-4 mr-1.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span className="font-medium">{coche.transmision}</span>
                             </div>
                         </div>
                     </div>
@@ -90,7 +105,7 @@ const CarCardExplore = ({
                                 e.preventDefault();
                                 onToggleFavorite(coche.id);
                             }}
-                            className="mt-1 text-secondary dark:text-secondary-light hover:text-error dark:hover:text-error transition-colors duration-200"
+                            className="ml-2 mt-1 text-secondary dark:text-secondary-light hover:text-error dark:hover:text-error transition-colors duration-200 flex-shrink-0"
                             aria-label={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
                         >
                             {isFavorite ? (
@@ -122,6 +137,7 @@ CarCardExplore.propTypes = {
         anio: PropTypes.number.isRequired,
         kilometraje: PropTypes.number.isRequired,
         combustible: PropTypes.string.isRequired,
+        transmision: PropTypes.string.isRequired,
         precio: PropTypes.number.isRequired,
         provincia: PropTypes.shape({
             nombre: PropTypes.string.isRequired

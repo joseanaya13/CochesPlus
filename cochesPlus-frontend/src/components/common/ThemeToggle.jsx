@@ -9,7 +9,7 @@ export default function ThemeToggle() {
             className="p-2 rounded-full bg-primary-dark dark:bg-primary-light"
             aria-label={darkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
         >
-            {darkMode ? '☀️' : '🌙'}
+            {darkMode ? '🌙' : '☀️'}
         </button>
     );
 }
