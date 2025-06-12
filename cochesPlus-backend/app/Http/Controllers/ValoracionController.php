@@ -163,7 +163,7 @@ class ValoracionController extends Controller
             DB::commit();
 
             // Cargar relaciones para la respuesta
-            $valoracion->load(['compra.vendedor:id,nombre', 'compra.coche:id,compra.coche.marca,modelo']);
+            $valoracion->load(['compra.vendedor:id,nombre', 'compra.coche.marca', 'compra.coche.modelo']);
 
             return response()->json([
                 'message' => 'Valoración creada correctamente',
