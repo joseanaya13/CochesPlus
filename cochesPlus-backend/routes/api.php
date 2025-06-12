@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CocheController;
 use App\Http\Controllers\MarcaController;
+use App\Http\Controllers\CompraController;
 use App\Http\Controllers\MensajeController;
 use App\Http\Controllers\FavoritoController;
 use App\Http\Controllers\Auth\AuthController;
@@ -159,4 +160,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::post('/{id}/close', [AdminMessagesController::class, 'cerrarConversacion']);
         });
     });
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/compras', [CompraController::class, 'iniciarCompra']);
+    Route::put('/compras/{id}/responder-vendedor', [CompraController::class, 'responderVendedor']);
+    Route::put('/compras/{id}/confirmar-comprador', [CompraController::class, 'confirmarComprador']);
+    Route::get('/compras/mis-compras', [CompraController::class, 'misCompras']);
+    Route::get('/compras/mis-ventas', [CompraController::class, 'misVentas']);
+    Route::delete('/compras/{id}', [CompraController::class, 'cancelar']);
 });
