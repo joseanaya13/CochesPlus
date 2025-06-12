@@ -98,8 +98,15 @@ const PurchaseButton = ({
                 className={`flex items-center justify-center ${className}`}
                 variant="primary"
             >
-                <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m2.6 0L6 5H4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+                {/* Icono de compra (carrito) */}
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-5 h-5 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7A1 1 0 007.5 17h9a1 1 0 00.9-1.45L17 13M7 13V6h13" />
                 </svg>
                 Solicitar Compra
             </Button>
@@ -151,7 +158,6 @@ const PurchaseButton = ({
                             value={formData.precio_acordado}
                             onChange={handleInputChange}
                             min="1"
-                            step="100"
                             required
                             placeholder="Ingresa tu oferta"
                         />

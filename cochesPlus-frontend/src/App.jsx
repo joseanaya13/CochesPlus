@@ -33,6 +33,8 @@ import MyCars from './pages/seller/MyCars';
 
 // Nueva página de valoraciones
 import ValoracionesPage from './pages/ratings/ValoracionesPage';
+// Nueva página de compras
+import ComprasPage from './pages/compras/ComprasPage';
 
 // Páginas de administración
 import VerifyDocuments from './pages/admin/VerifyDocuments';
@@ -92,6 +94,9 @@ export default function App() {
 
             {/* Rutas de valoraciones */}
             <Route path="/valoraciones" element={<ProtectedRoute><ValoracionesPage /></ProtectedRoute>} />
+
+            {/* Rutas de compras */}
+            <Route path="/compras" element={<ProtectedRoute><ComprasPage /></ProtectedRoute>} />
 
             {/* Exploración de coches */}
             <Route path="/coches" element={<ExploreCars />} />

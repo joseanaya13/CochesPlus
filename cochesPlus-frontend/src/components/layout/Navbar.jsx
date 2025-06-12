@@ -90,7 +90,7 @@ const Navbar = () => {
                             </Link> */}
 
                             {/* Enlaces para administradores */}
-                            {isAuthenticated && hasRole('admin') &&  (
+                            {isAuthenticated && hasRole('admin') && (
                                 <Link to="/dashboard" className={getNavLinkClass('/dashboard')}>
                                     Dashboard
                                 </Link>
@@ -165,16 +165,28 @@ const Navbar = () => {
                                         )}
 
                                         {hasRole('comprador') && (
-                                            <Link
-                                                to="/favoritos"
-                                                className="text-sm leading-5 px-4 py-2 dark:hover:bg-text-secondary hover:bg-primary-light flex items-center gap-2 transition-colors duration-200"
-                                                onClick={closeMenus}
-                                            >
-                                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                                                </svg>
-                                                Mis Favoritos
-                                            </Link>
+                                            <>
+                                                <Link
+                                                    to="/favoritos"
+                                                    className="text-sm leading-5 px-4 py-2 dark:hover:bg-text-secondary hover:bg-primary-light flex items-center gap-2 transition-colors duration-200"
+                                                    onClick={closeMenus}
+                                                >
+                                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                                    </svg>
+                                                    Mis Favoritos
+                                                </Link>
+                                                <Link
+                                                    to="/compras"
+                                                    className="text-sm leading-5 px-4 py-2 dark:hover:bg-text-secondary hover:bg-primary-light flex items-center gap-2 transition-colors duration-200"
+                                                    onClick={closeMenus}
+                                                >
+                                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                                    </svg>
+                                                    Mis Compras
+                                                </Link>
+                                            </>
                                         )}
 
                                         {/* Enlace a Valoraciones */}
@@ -336,12 +348,20 @@ const Navbar = () => {
                                     )}
 
                                     {isAuthenticated && hasRole('comprador') && (
-                                        <Link to="/favoritos" className={getMobileLinkClass('/favoritos')} onClick={closeMenus}>
-                                            <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                                            </svg>
-                                            Mis Favoritos
-                                        </Link>
+                                        <>
+                                            <Link to="/favoritos" className={getMobileLinkClass('/favoritos')} onClick={closeMenus}>
+                                                <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                                </svg>
+                                                Mis Favoritos
+                                            </Link>
+                                            <Link to="/compras" className={getMobileLinkClass('/compras')} onClick={closeMenus}>
+                                                <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                                </svg>
+                                                Mis Compras
+                                            </Link>
+                                        </>
                                     )}
 
                                     {isAuthenticated && hasRole('admin') && (

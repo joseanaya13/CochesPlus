@@ -9,6 +9,7 @@ import { formatPrice, formatDate } from '../../utils/formatters';
 import Alert from '../../components/common/Alert';
 import Modal from '../../components/common/Modal';
 import ChatButton from '../../components/messages/ChatButton';
+import PurchaseButton from '../../components/compras/PurchaseButton';
 
 const CarDetail = () => {
     const { id } = useParams();
@@ -566,7 +567,7 @@ const CarDetail = () => {
                                                         </svg>
                                                     ) : documento.tipo === 'doc' || documento.tipo === 'docx' ? (
                                                         <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                                                            <path fillRule="evenodd" d="M4 4a2 2 0 002-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
                                                         </svg>
                                                     ) : (
                                                         <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
@@ -646,18 +647,35 @@ const CarDetail = () => {
                                         coche={coche}
                                         className="mb-3 w-full"
                                     />
-                                    <Button
-                                        variant={isFavorite ? "secondary" : "outline"}
-                                        fullWidth
-                                        className="mb-3 flex items-center justify-center"
-                                        onClick={toggleFavorite}
-                                        disabled={loadingFavorito}
-                                    >
-                                        <svg className="h-5 w-5 mr-2" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                        </svg>
-                                        {isFavorite ? 'Guardado en favoritos' : 'Guardar en favoritos'}
-                                    </Button>
+                                    {/* NUEVO: Botón de compra */}
+                                    {!coche.vendido && (
+                                        <PurchaseButton
+                                            coche={coche}
+                                            conversacionId={null}
+                                            onPurchaseInitiated={() => {
+                                                setAlertInfo({
+                                                    type: 'success',
+                                                    message: 'Solicitud de compra enviada correctamente. El vendedor será notificado.'
+                                                });
+                                            }}
+                                            className="mb-3 w-full"
+                                        />
+                                    )}
+                                    {/* Solo mostrar botón de favoritos si el usuario NO es el propietario */}
+                                    {user.id !== coche.id_usuario && (
+                                        <Button
+                                            variant={isFavorite ? "secondary" : "outline"}
+                                            fullWidth
+                                            className="mb-3 flex items-center justify-center"
+                                            onClick={toggleFavorite}
+                                            disabled={loadingFavorito}
+                                        >
+                                            <svg className="h-5 w-5 mr-2" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                            </svg>
+                                            {isFavorite ? 'Guardado en favoritos' : 'Guardar en favoritos'}
+                                        </Button>
+                                    )}
                                 </>
                             ) : (
                                 <Button
@@ -687,20 +705,6 @@ const CarDetail = () => {
                                             </svg>
                                             Editar anuncio
                                         </Button>
-
-                                        {!coche.vendido && (
-                                            <Button
-                                                variant="success"
-                                                className='flex items-center justify-center'
-                                                fullWidth
-                                                onClick={handleMarkAsSold}
-                                            >
-                                                <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                Marcar como vendido
-                                            </Button>
-                                        )}
 
                                         <Button
                                             variant="danger"
