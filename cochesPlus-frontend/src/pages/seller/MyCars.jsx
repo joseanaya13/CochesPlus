@@ -6,6 +6,7 @@ import Spinner from '../../components/common/Spinner';
 import CarCardProfile from '../../components/cars/CarCardProfile';
 import Alert from '../../components/common/Alert';
 import Modal from '../../components/common/Modal';
+import Button from '../../components/common/Button';
 
 function MyCars() {
     const [coches, setCoches] = useState([]);
@@ -62,16 +63,16 @@ function MyCars() {
 
     return (
         <Layout>
-            <div className="bg-primary text-on-primary">
+            <div className="bg-primary-light dark:bg-primary-dark">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <div className="flex justify-between items-center">
                         <div>
-                            <h1 className="text-3xl font-extrabold !text-primary-light">Mis Anuncios</h1>
-                            <p className="mt-2">Gestiona tus coches en venta</p>
+                            <h1 className="text-3xl font-extrabold text-text-dark dark:text-text-light">Mis Anuncios</h1>
+                            <p className="mt-2 text-text-dark dark:text-text-light">Gestiona tus coches en venta</p>
                         </div>
                         <Link
                             to="/vendedor/publicar"
-                            className="px-4 py-2 bg-on-primary text-text-dark bg-primary-light font-medium rounded-md"
+                            className="px-4 py-2 bg-on-primary text-text-light dark:text-text-dark dark:bg-primary-light bg-primary-dark font-medium rounded-md"
                         >
                             Publicar nuevo anuncio
                         </Link>
@@ -91,20 +92,21 @@ function MyCars() {
                         className="mb-4 animate-fade"
                     />
                 ) : coches.length === 0 ? (
-                    <div className="bg-surface-light dark:bg-surface-dark rounded-lg shadow-md p-8 text-center">
-                        <svg className="mx-auto h-16 w-16 text-icon-light dark:text-icon-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                        <h3 className="mt-4 text-lg font-medium text-on-surface-light dark:text-on-surface-dark">No tienes anuncios publicados</h3>
-                        <p className="mt-2 text-on-surface-muted-light dark:text-on-surface-muted-dark">Comienza a vender tus coches publicando tu primer anuncio.</p>
-                        <div className="mt-6">
-                            <Link
-                                to="/vendedor/publicar"
-                                className="px-4 py-2 bg-primary text-on-primary font-medium rounded-md hover:bg-primary-hover"
-                            >
-                                Publicar anuncio
-                            </Link>
+                    <div className="bg-background-light dark:bg-primary-dark p-8 rounded-lg shadow-md text-center">
+                        <div className="flex justify-center mb-4">
+                            <svg className="h-16 w-16 text-text-secondary dark:text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
                         </div>
+                        <h2 className="text-xl font-semibold text-text-dark dark:text-text-light mb-2">No tienes anuncios publicados</h2>
+                        <p className="text-text-secondary dark:text-text-secondary mb-6">
+                            Cuando publiques un coche, aparecerá aquí para que puedas gestionarlo.
+                        </p>
+                        <Link to="/vendedor/publicar">
+                            <Button variant="primary">
+                                Publicar anuncio
+                            </Button>
+                        </Link>
                     </div>
                 ) : (
                     <div className="space-y-6">

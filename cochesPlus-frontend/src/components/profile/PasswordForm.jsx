@@ -83,7 +83,6 @@ const PasswordForm = ({ onSubmit, loading }) => {
                 onChange={handleChange}
                 disabled={loading}
                 error={errors.password}
-                helperText={!errors.password ? "La contraseña debe tener al menos 8 caracteres." : null}
                 required
             />
 

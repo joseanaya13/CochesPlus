@@ -41,6 +41,7 @@ const InputField = ({
           onChange={onChange}
           disabled={disabled}
           required={required}
+          min={type === 'number' ? 0 : undefined}
           className={`
             w-full px-4 py-2.5 
             ${icon ? 'pl-10' : 'pl-4'} 

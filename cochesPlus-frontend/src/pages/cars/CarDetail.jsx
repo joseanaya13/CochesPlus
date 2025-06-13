@@ -741,7 +741,7 @@ const CarDetail = () => {
                                     <p className="text-sm text-text-secondary dark:text-text-secondary">
                                         {coche.usuario?.telefono && isAuthenticated
                                             ? coche.usuario.telefono
-                                            : 'Contacta para más información'}
+                                            : ''}
                                     </p>
                                 </div>
                             </div>
@@ -770,7 +770,7 @@ const CarDetail = () => {
                                     {/* Solo mostrar botón de favoritos si el usuario NO es el propietario */}
                                     {user.id !== coche.id_usuario && (
                                         <Button
-                                            variant={isFavorite ? "secondary" : "outline"}
+                                            variant={isFavorite ? "error" : "primary"}
                                             fullWidth
                                             className="mb-3 flex items-center justify-center"
                                             onClick={toggleFavorite}
@@ -780,7 +780,9 @@ const CarDetail = () => {
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                             </svg>
                                             {isFavorite ? 'Guardado en favoritos' : 'Guardar en favoritos'}
+                                            {console.log(isFavorite)}
                                         </Button>
+                                        
                                     )}
                                 </>
                             ) : (
@@ -870,7 +872,7 @@ const CarDetail = () => {
                     </div>
 
                     {/* 8. Recomendaciones */}
-                    <div className="mt-12">
+                    {/* <div className="mt-12">
                         <h2 className="text-2xl font-bold text-text-dark dark:text-text-light mb-6">
                             Anuncios similares
                         </h2>
@@ -932,7 +934,7 @@ const CarDetail = () => {
                                 </p>
                             </div>
                         )}
-                    </div>
+                    </div> */}
                 </div>
             </div>
             {/* Modal para confirmar eliminación de anuncio */}

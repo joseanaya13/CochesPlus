@@ -19,7 +19,7 @@ const CarForm = ({
 
     const [marcas, setMarcas] = useState([]);
     const [modelos, setModelos] = useState([]);
-    const [categorias, setCategrias] = useState([]);
+    const [categorias, setCategorias] = useState([]);
     const [provincias, setProvincias] = useState([]);
 
     const [imagenPrincipal, setImagenPrincipal] = useState(null);
@@ -33,6 +33,10 @@ const CarForm = ({
     const [documentosNombres, setDocumentosNombres] = useState([]);
 
     const [documentosExistentes, setDocumentosExistentes] = useState(initialData.documentos || []);
+
+    // Estado para errores de validación específicos
+    const [fieldErrors, setFieldErrors] = useState({});
+    const [generalError, setGeneralError] = useState(null);
 
     const [formData, setFormData] = useState({
         id_usuario: initialData.id_usuario || '',
@@ -51,6 +55,35 @@ const CarForm = ({
         precio: initialData.precio || '',
         descripcion: initialData.descripcion || ''
     });
+
+    // Guardar en localStorage para persistencia
+    useEffect(() => {
+        if (!isEditing) {
+            const savedFormData = localStorage.getItem('carFormData');
+            if (savedFormData) {
+                try {
+                    const parsed = JSON.parse(savedFormData);
+                    setFormData(parsed);
+                } catch (e) {
+                    console.error('Error al recuperar datos del formulario:', e);
+                }
+            }
+        }
+    }, [isEditing]);
+
+    // Guardar cambios en localStorage
+    useEffect(() => {
+        if (!isEditing && !success) {
+            localStorage.setItem('carFormData', JSON.stringify(formData));
+        }
+    }, [formData, isEditing, success]);
+
+    // Limpiar localStorage cuando se envía correctamente
+    useEffect(() => {
+        if (success) {
+            localStorage.removeItem('carFormData');
+        }
+    }, [success]);
 
     useEffect(() => {
         if (initialData && Object.keys(initialData).length > 0) {
@@ -89,11 +122,8 @@ const CarForm = ({
         const fetchData = async () => {
             try {
                 const marcasRes = await cocheService.getMarcas();
-                console.log('Respuesta de marcas (raw):', marcasRes);
-
                 if (Array.isArray(marcasRes)) {
                     setMarcas(marcasRes);
-                    console.log('Marcas establecidas correctamente como array:', marcasRes);
                 } else {
                     console.error('La respuesta no es un array:', marcasRes);
                     setMarcas([]);
@@ -101,10 +131,10 @@ const CarForm = ({
 
                 const categoriasRes = await cocheService.getCategorias();
                 if (Array.isArray(categoriasRes)) {
-                    setCategrias(categoriasRes);
+                    setCategorias(categoriasRes);
                 } else {
                     console.error('Respuesta de categorías no es un array:', categoriasRes);
-                    setCategrias([]);
+                    setCategorias([]);
                 }
 
                 const provinciasRes = await cocheService.getProvincias();
@@ -116,6 +146,7 @@ const CarForm = ({
                 }
             } catch (err) {
                 console.error('Error al cargar datos iniciales:', err);
+                setGeneralError('Error al cargar los datos necesarios para el formulario. Por favor, recarga la página.');
             }
         };
 
@@ -127,8 +158,6 @@ const CarForm = ({
             if (formData.id_marca) {
                 try {
                     const modelosRes = await cocheService.getModelosByMarca(formData.id_marca);
-                    console.log('Respuesta de modelos:', modelosRes);
-
                     if (Array.isArray(modelosRes)) {
                         setModelos(modelosRes);
                     } else if (modelosRes && modelosRes.data) {
@@ -155,23 +184,39 @@ const CarForm = ({
             ...formData,
             [name]: value
         });
+        // Limpiar error del campo cuando el usuario empieza a escribir
+        if (fieldErrors[name]) {
+            setFieldErrors(prev => ({
+                ...prev,
+                [name]: null
+            }));
+        }
     };
 
     const handleImagenPrincipal = (e) => {
         const file = e.target.files[0];
         if (file) {
             if (!file.type.match('image.*')) {
-                alert('Por favor, selecciona una imagen válida');
+                setFieldErrors(prev => ({
+                    ...prev,
+                    imagenPrincipal: 'Por favor, selecciona una imagen válida'
+                }));
                 return;
             }
 
-            if (file.size > 5 * 1024 * 1024) { 
-                alert('La imagen es demasiado grande. El tamaño máximo es 5MB.');
+            if (file.size > 5 * 1024 * 1024) {
+                setFieldErrors(prev => ({
+                    ...prev,
+                    imagenPrincipal: 'La imagen es demasiado grande. El tamaño máximo es 5MB.'
+                }));
                 return;
             }
 
             setImagenPrincipal(file);
-            console.log('Imagen principal seleccionada:', file.name);
+            setFieldErrors(prev => ({
+                ...prev,
+                imagenPrincipal: null
+            }));
 
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -190,7 +235,7 @@ const CarForm = ({
                     return false;
                 }
 
-                if (file.size > 5 * 1024 * 1024) { 
+                if (file.size > 5 * 1024 * 1024) {
                     console.warn(`La imagen ${file.name} es demasiado grande (>5MB)`);
                     return false;
                 }
@@ -199,18 +244,27 @@ const CarForm = ({
             });
 
             if (validFiles.length === 0) {
-                alert('Ninguno de los archivos seleccionados es válido. Por favor, selecciona imágenes (máx. 5MB cada una).');
+                setFieldErrors(prev => ({
+                    ...prev,
+                    imagenesAdicionales: 'Ninguno de los archivos seleccionados es válido. Por favor, selecciona imágenes (máx. 5MB cada una).'
+                }));
                 return;
             }
 
             const totalImages = imagenesAdicionales.length + validFiles.length + imagenesExistentes.length;
             if (totalImages > 10) {
-                alert('Solo puedes tener un máximo de 10 imágenes adicionales en total.');
+                setFieldErrors(prev => ({
+                    ...prev,
+                    imagenesAdicionales: 'Solo puedes tener un máximo de 10 imágenes adicionales en total.'
+                }));
                 return;
             }
 
             setImagenesAdicionales(prevImages => [...prevImages, ...validFiles]);
-            console.log(`${validFiles.length} imágenes adicionales seleccionadas`);
+            setFieldErrors(prev => ({
+                ...prev,
+                imagenesAdicionales: null
+            }));
 
             validFiles.forEach(file => {
                 const reader = new FileReader();
@@ -221,7 +275,10 @@ const CarForm = ({
             });
 
             if (validFiles.length < files.length) {
-                alert(`${files.length - validFiles.length} archivos fueron ignorados por no ser imágenes válidas o exceder el tamaño máximo.`);
+                setFieldErrors(prev => ({
+                    ...prev,
+                    imagenesAdicionales: `${files.length - validFiles.length} archivos fueron ignorados por no ser imágenes válidas o exceder el tamaño máximo.`
+                }));
             }
         }
     };
@@ -237,7 +294,7 @@ const CarForm = ({
                 setImagenesExistentes(nuevasImagenesExistentes);
             } catch (err) {
                 console.error('Error al eliminar imagen:', err);
-                alert('No se pudo eliminar la imagen. Por favor, intenta de nuevo.');
+                setGeneralError('No se pudo eliminar la imagen. Por favor, intenta de nuevo.');
             }
         }
     };
@@ -261,26 +318,99 @@ const CarForm = ({
                 setDocumentosExistentes(nuevosDocumentosExistentes);
             } catch (err) {
                 console.error('Error al eliminar documento:', err);
-                alert('No se pudo eliminar el documento. Por favor, intenta de nuevo.');
+                setGeneralError('No se pudo eliminar el documento. Por favor, intenta de nuevo.');
             }
         }
+    };
+
+    // Validación del formulario
+    const validateForm = () => {
+        const errors = {};
+
+        // Validaciones de campos requeridos
+        if (!formData.id_marca) errors.id_marca = 'La marca es obligatoria';
+        if (!formData.id_modelo) errors.id_modelo = 'El modelo es obligatorio';
+        if (!formData.anio) errors.anio = 'El año es obligatorio';
+        if (!formData.kilometraje) errors.kilometraje = 'El kilometraje es obligatorio';
+        if (!formData.id_categoria) errors.id_categoria = 'La categoría es obligatoria';
+        if (!formData.combustible) errors.combustible = 'El combustible es obligatorio';
+        if (!formData.transmision) errors.transmision = 'La transmisión es obligatoria';
+        if (!formData.plazas) errors.plazas = 'El número de plazas es obligatorio';
+        if (!formData.puertas) errors.puertas = 'El número de puertas es obligatorio';
+        if (!formData.id_provincia) errors.id_provincia = 'La provincia es obligatoria';
+        if (!formData.precio) errors.precio = 'El precio es obligatorio';
+
+        // Validaciones de rangos
+        const currentYear = new Date().getFullYear();
+        if (formData.anio && (formData.anio < 1900 || formData.anio > currentYear + 1)) {
+            errors.anio = `El año debe estar entre 1900 y ${currentYear + 1}`;
+        }
+
+        if (formData.kilometraje && formData.kilometraje < 0) {
+            errors.kilometraje = 'El kilometraje no puede ser negativo';
+        }
+
+        if (formData.precio && formData.precio <= 0) {
+            errors.precio = 'El precio debe ser mayor que 0';
+        }
+
+        if (formData.plazas && (formData.plazas < 1 || formData.plazas > 9)) {
+            errors.plazas = 'El número de plazas debe estar entre 1 y 9';
+        }
+
+        if (formData.puertas && (formData.puertas < 1 || formData.puertas > 5)) {
+            errors.puertas = 'El número de puertas debe estar entre 1 y 5';
+        }
+
+        if (formData.potencia && formData.potencia <= 0) {
+            errors.potencia = 'La potencia debe ser mayor que 0';
+        }
+
+        // Validación de imágenes para nuevos anuncios
+        if (!isEditing && !imagenPrincipal && !imagenesExistentes.length) {
+            errors.imagenPrincipal = 'Debe incluir al menos una imagen principal';
+        }
+
+        return errors;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!isEditing && (!imagenPrincipal && !imagenesExistentes.length)) {
-            alert('Debe incluir al menos una imagen principal');
+        // Limpiar errores previos
+        setFieldErrors({});
+        setGeneralError(null);
+
+        // Validar formulario
+        const errors = validateForm();
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
+            setGeneralError('Por favor, corrige los errores en el formulario antes de continuar.');
+
+            // Scroll al primer error
+            const firstErrorField = Object.keys(errors)[0];
+            const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
+            if (errorElement) {
+                errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
             return;
         }
+
         const todasLasImagenes = [imagenPrincipal, ...imagenesAdicionales].filter(Boolean);
         onSubmit(formData, todasLasImagenes, documentos);
     };
 
     return (
         <form onSubmit={handleSubmit} className="space-y-8">
-            {error && (
-                <Alert type="error" message={error} />
+            {/* Errores generales */}
+            {(generalError || error) && (
+                <Alert
+                    type="error"
+                    message={generalError || error}
+                    onClose={() => {
+                        setGeneralError(null);
+                    }}
+                />
             )}
 
             {success && (
@@ -294,37 +424,42 @@ const CarForm = ({
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Información básica</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <SelectField
-                            id="id_marca"
-                            name="id_marca"
-                            value={formData.id_marca}
-                            onChange={handleChange}
-                            required
-                            label="Marca"
-                            placeholder="Seleccionar marca"
-                            options={marcas.map(marca => ({
+                    <SelectField
+                        id="id_marca"
+                        name="id_marca"
+                        value={formData.id_marca}
+                        onChange={handleChange}
+                        required
+                        label="Marca"
+                        placeholder="Seleccionar marca"
+                        options={[
+                            { value: '', label: 'Seleccionar marca' },
+                            ...marcas.map(marca => ({
                                 value: marca.id,
                                 label: marca.nombre
-                            }))}
-                        />
-                    </div>
-                    <div>
-                        <SelectField
-                            id="id_modelo"
-                            name="id_modelo"
-                            value={formData.id_modelo}
-                            onChange={handleChange}
-                            required
-                            label="Modelo"
-                            placeholder="Seleccionar modelo"
-                            options={modelos.map(modelo => ({
+                            }))
+                        ]}
+                        error={fieldErrors.id_marca}
+                    />
+
+                    <SelectField
+                        id="id_modelo"
+                        name="id_modelo"
+                        value={formData.id_modelo}
+                        onChange={handleChange}
+                        required
+                        label="Modelo"
+                        placeholder="Seleccionar modelo"
+                        options={[
+                            { value: '', label: formData.id_marca ? 'Seleccionar modelo' : 'Primero selecciona una marca' },
+                            ...modelos.map(modelo => ({
                                 value: modelo.id,
                                 label: modelo.nombre
-                            }))}
-                            disabled={!formData.id_marca}
-                        />
-                    </div>
+                            }))
+                        ]}
+                        disabled={!formData.id_marca}
+                        error={fieldErrors.id_modelo}
+                    />
 
                     <InputField
                         label="Año"
@@ -335,6 +470,7 @@ const CarForm = ({
                         min="1900"
                         max={new Date().getFullYear() + 1}
                         required
+                        error={fieldErrors.anio}
                     />
 
                     <InputField
@@ -345,6 +481,7 @@ const CarForm = ({
                         onChange={handleChange}
                         min="0"
                         required
+                        error={fieldErrors.kilometraje}
                     />
                 </div>
             </div>
@@ -353,53 +490,57 @@ const CarForm = ({
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Detalles técnicos</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <SelectField
-                            id="id_categoria"
-                            name="id_categoria"
-                            value={formData.id_categoria}
-                            onChange={handleChange}
-                            required
-                            label="Categoría"
-                            placeholder="Seleccionar categoría"
-                            options={categorias.map(cat => ({
+                    <SelectField
+                        id="id_categoria"
+                        name="id_categoria"
+                        value={formData.id_categoria}
+                        onChange={handleChange}
+                        required
+                        label="Categoría"
+                        placeholder="Seleccionar categoría"
+                        options={[
+                            { value: '', label: 'Seleccionar categoría' },
+                            ...categorias.map(cat => ({
                                 value: cat.id,
                                 label: cat.nombre
-                            }))}
-                        />
-                    </div>
-                    <div>
-                        <SelectField
-                            id="combustible"
-                            name="combustible"
-                            value={formData.combustible}
-                            onChange={handleChange}
-                            required
-                            label="Combustible"
-                            placeholder="Seleccionar combustible"
-                            options={[
-                                { value: "Gasolina", label: "Gasolina" },
-                                { value: "Diesel", label: "Diésel" },
-                                { value: "Híbrido", label: "Híbrido" },
-                                { value: "Eléctrico", label: "Eléctrico" }
-                            ]}
-                        />
-                    </div>
-                    <div>
-                        <SelectField
-                            id="transmision"
-                            name="transmision"
-                            value={formData.transmision}
-                            onChange={handleChange}
-                            required
-                            label="Transmisión"
-                            placeholder="Seleccionar transmisión"
-                            options={[
-                                { value: "Manual", label: "Manual" },
-                                { value: "Automático", label: "Automático" }
-                            ]}
-                        />
-                    </div>
+                            }))
+                        ]}
+                        error={fieldErrors.id_categoria}
+                    />
+
+                    <SelectField
+                        id="combustible"
+                        name="combustible"
+                        value={formData.combustible}
+                        onChange={handleChange}
+                        required
+                        label="Combustible"
+                        placeholder="Seleccionar combustible"
+                        options={[
+                            { value: '', label: 'Seleccionar combustible' },
+                            { value: "Gasolina", label: "Gasolina" },
+                            { value: "Diesel", label: "Diésel" },
+                            { value: "Híbrido", label: "Híbrido" },
+                            { value: "Eléctrico", label: "Eléctrico" }
+                        ]}
+                        error={fieldErrors.combustible}
+                    />
+
+                    <SelectField
+                        id="transmision"
+                        name="transmision"
+                        value={formData.transmision}
+                        onChange={handleChange}
+                        required
+                        label="Transmisión"
+                        placeholder="Seleccionar transmisión"
+                        options={[
+                            { value: '', label: 'Seleccionar transmisión' },
+                            { value: "Manual", label: "Manual" },
+                            { value: "Automático", label: "Automático" }
+                        ]}
+                        error={fieldErrors.transmision}
+                    />
 
                     <InputField
                         label="Plazas"
@@ -410,6 +551,7 @@ const CarForm = ({
                         min="1"
                         max="9"
                         required
+                        error={fieldErrors.plazas}
                     />
 
                     <InputField
@@ -419,6 +561,7 @@ const CarForm = ({
                         value={formData.potencia}
                         onChange={handleChange}
                         min="1"
+                        error={fieldErrors.potencia}
                     />
 
                     <InputField
@@ -427,6 +570,7 @@ const CarForm = ({
                         name="color"
                         value={formData.color}
                         onChange={handleChange}
+                        error={fieldErrors.color}
                     />
 
                     <InputField
@@ -438,6 +582,7 @@ const CarForm = ({
                         min="1"
                         max="5"
                         required
+                        error={fieldErrors.puertas}
                     />
                 </div>
             </div>
@@ -446,21 +591,23 @@ const CarForm = ({
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Ubicación y precio</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <SelectField
-                            id="id_provincia"
-                            name="id_provincia"
-                            value={formData.id_provincia}
-                            onChange={handleChange}
-                            required
-                            label="Provincia"
-                            placeholder="Seleccionar provincia"
-                            options={provincias.map(provincia => ({
+                    <SelectField
+                        id="id_provincia"
+                        name="id_provincia"
+                        value={formData.id_provincia}
+                        onChange={handleChange}
+                        required
+                        label="Provincia"
+                        placeholder="Seleccionar provincia"
+                        options={[
+                            { value: '', label: 'Seleccionar provincia' },
+                            ...provincias.map(provincia => ({
                                 value: provincia.id,
                                 label: provincia.nombre
-                            }))}
-                        />
-                    </div>
+                            }))
+                        ]}
+                        error={fieldErrors.id_provincia}
+                    />
 
                     <InputField
                         label="Precio (€)"
@@ -471,6 +618,7 @@ const CarForm = ({
                         min="0"
                         step="100"
                         required
+                        error={fieldErrors.precio}
                     />
                 </div>
             </div>
@@ -576,13 +724,16 @@ const CarForm = ({
                                             onChange={handleImagenPrincipal}
                                             className="hidden"
                                             aria-label="Subir foto principal"
-                                            required={!isEditing && !imagenPrincipal}
                                         />
                                     </label>
                                 </div>
                             )}
                         </div>
+                        {fieldErrors.imagenPrincipal && (
+                            <p className="mt-1 text-sm text-error">{fieldErrors.imagenPrincipal}</p>
+                        )}
                     </div>
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             {isEditing ? 'Nuevas fotos adicionales' : 'Fotos adicionales'} <span className="text-xs text-gray-500">(Opcional, máx. 10)</span>
@@ -611,6 +762,10 @@ const CarForm = ({
                                 </label>
                             </div>
                         </div>
+                        {fieldErrors.imagenesAdicionales && (
+                            <p className="mt-1 text-sm text-error">{fieldErrors.imagenesAdicionales}</p>
+                        )}
+
                         {/* Vista previa de imágenes adicionales */}
                         {imagenesAdicionalesPreview.length > 0 && (
                             <div className="mt-4">
@@ -758,7 +913,8 @@ const CarForm = ({
                         placeholder="Describe el estado y características destacadas del vehículo..."
                         value={formData.descripcion}
                         onChange={handleChange}
-                    ></TextArea>
+                        error={fieldErrors.descripcion}
+                    />
                 </div>
             </div>
 
@@ -766,15 +922,27 @@ const CarForm = ({
             <div className="flex justify-end space-x-4">
                 <Button
                     type="button"
-                    onClick={() => window.history.back()}
+                    variant="secondary"
+                    onClick={() => {
+                        if (!isEditing) {
+                            if (window.confirm('¿Estás seguro de que deseas cancelar? Los datos del formulario se perderán.')) {
+                                localStorage.removeItem('carFormData');
+                                window.history.back();
+                            }
+                        } else {
+                            window.history.back();
+                        }
+                    }}
                 >
                     Cancelar
                 </Button>
                 <Button
                     type="submit"
+                    variant="primary"
                     disabled={loading}
+                    isLoading={loading}
                 >
-                    {loading ? (isEditing ? <><Spinner></Spinner>Actualizando...</> : <><Spinner></Spinner>Publicando...</>) : (isEditing ? 'Actualizar anuncio' : 'Publicar anuncio')}
+                    {loading ? (isEditing ? 'Actualizando...' : 'Publicando...') : (isEditing ? 'Actualizar anuncio' : 'Publicar anuncio')}
                 </Button>
             </div>
         </form>

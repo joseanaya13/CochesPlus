@@ -47,9 +47,12 @@ const NewCar = () => {
 
     return (
         <Layout>
+            <div className="bg-primary-light dark:bg-primary-dark">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <h1 className="text-3xl font-extrabold">Publicar Nuevo Anuncio</h1>
+                </div>
+            </div>
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <h1 className="text-3xl font-bold !text-text-dark">Publicar Nuevo Anuncio</h1>
-
                 {loading ? (
                     <div className="flex justify-center items-center h-64">
                         <Spinner variant={"page"}></Spinner>

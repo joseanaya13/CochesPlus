@@ -106,15 +106,15 @@ const Messages = () => {
 
     return (
         <Layout>
-            <div className="bg-primary text-white">
+            <div className="bg-primary-light dark:bg-primary-dark">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <h1 className="text-3xl font-extrabold">Mensajes</h1>
-                    <p className="mt-2">Conversa con compradores y vendedores</p>
+                    <p className="mt-2 text-text-dark dark:text-text-light">Conversa con compradores y vendedores</p>
                 </div>
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="bg-white dark:bg-primary-dark rounded-lg shadow-md overflow-hidden">
+                <div className="bg-primary-light dark:bg-primary-dark rounded-lg shadow-md overflow-hidden">
                     <div className="flex h-96 lg:h-[600px]">
                         {/* Lista de conversaciones */}
                         <div className="w-full lg:w-1/3 border-r border-secondary-light dark:border-secondary-dark">

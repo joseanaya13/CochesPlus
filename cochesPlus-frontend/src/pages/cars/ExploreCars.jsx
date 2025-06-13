@@ -2,12 +2,16 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Button from '../../components/common/Button';
+import InputField from '../../components/common/InputField';
+import SelectField from '../../components/common/SelectField';
+import Spinner from '../../components/common/Spinner';
+import Pagination from '../../components/common/Pagination';
+import Alert from '../../components/common/Alert';
 import CarCardExplore from '../../components/cars/CarCardExplore';
 import cocheService from '../../services/CocheService';
 import favoritoService from '../../services/FavoritoService';
 import { useAuth } from '../../contexts/AuthContext';
 import useDebounce from '../../hooks/useDebounce';
-import Alert from '../../components/common/Alert';
 
 const ExploreCars = () => {
     const { isAuthenticated } = useAuth();
@@ -53,9 +57,6 @@ const ExploreCars = () => {
         order_by: 'fecha_publicacion',
         order_dir: 'desc'
     });
-
-    // Estado para los filtros aplicados
-    const [appliedFilters, setAppliedFilters] = useState({ ...filters });
 
     // Usar debounce automático para mejor UX
     const debouncedFilters = useDebounce(filters, 500);
@@ -409,6 +410,31 @@ const ExploreCars = () => {
         }
     };
 
+    // Componente para el botón de limpiar filtro
+    const ClearFilterButton = ({ onClick }) => (
+        <button
+            onClick={onClick}
+            className="ml-1 text-primary hover:text-primary-dark"
+            aria-label="Eliminar filtro"
+        >
+            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    );
+
+    // Componente para el skeleton de carga
+    const CarSkeleton = () => (
+        <div className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md overflow-hidden animate-pulse">
+            <div className="h-48 bg-secondary-light dark:bg-secondary-dark"></div>
+            <div className="p-4">
+                <div className="h-4 bg-secondary-light dark:bg-secondary-dark rounded w-3/4 mb-2"></div>
+                <div className="h-6 bg-secondary-light dark:bg-secondary-dark rounded w-1/2 mb-4"></div>
+                <div className="h-4 bg-secondary-light dark:bg-secondary-dark rounded w-full mb-2"></div>
+                <div className="h-4 bg-secondary-light dark:bg-secondary-dark rounded w-2/3"></div>
+            </div>
+        </div>
+    );
 
     return (
         <Layout>
@@ -419,94 +445,74 @@ const ExploreCars = () => {
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-xl font-bold text-text-dark dark:text-text-light">Filtros</h2>
                             {getActiveFiltersCount() > 0 && (
-                                <button
+                                <Button
+                                    variant="link"
                                     onClick={clearAllFilters}
-                                    className="text-sm text-error hover:text-error-dark underline"
+                                    className="text-sm text-error hover:text-error-dark underline p-0"
                                 >
                                     Limpiar todo
-                                </button>
+                                </Button>
                             )}
                         </div>
 
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-text-dark dark:text-text-light mb-1">
-                                Marca
-                            </label>
-                            <select
-                                name="id_marca"
-                                value={filters.id_marca}
-                                onChange={handleFilterChange}
-                                className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
-                            >
-                                <option value="">Todas las marcas</option>
-                                {marcas.map(marca => (
-                                    <option key={marca.id} value={marca.id}>
-                                        {marca.nombre}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <SelectField
+                            label="Marca"
+                            name="id_marca"
+                            value={filters.id_marca}
+                            onChange={handleFilterChange}
+                            options={[
+                                { value: '', label: 'Todas las marcas' },
+                                ...marcas.map(marca => ({ value: marca.id, label: marca.nombre }))
+                            ]}
+                            className="mb-4"
+                        />
 
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-text-dark dark:text-text-light mb-1">
-                                Modelo
-                            </label>
-                            <select
-                                name="id_modelo"
-                                value={filters.id_modelo}
-                                onChange={handleFilterChange}
-                                disabled={!filters.id_marca}
-                                className={`w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light ${!filters.id_marca ? 'opacity-60 cursor-not-allowed' : ''}`}
-                            >
-                                <option value="">
-                                    {!filters.id_marca ? 'Selecciona una marca' : 'Todos los modelos'}
-                                </option>
-                                {models.map(modelo => (
-                                    <option key={modelo.id} value={modelo.id}>
-                                        {modelo.nombre}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <SelectField
+                            label="Modelo"
+                            name="id_modelo"
+                            value={filters.id_modelo}
+                            onChange={handleFilterChange}
+                            disabled={!filters.id_marca}
+                            options={[
+                                { value: '', label: !filters.id_marca ? 'Selecciona una marca' : 'Todos los modelos' },
+                                ...models.map(modelo => ({ value: modelo.id, label: modelo.nombre }))
+                            ]}
+                            className="mb-4"
+                        />
 
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-text-dark dark:text-text-light mb-1">
-                                Combustible
-                            </label>
-                            <select
-                                name="combustible"
-                                value={filters.combustible}
-                                onChange={handleFilterChange}
-                                className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
-                            >
-                                <option value="">Todos</option>
-                                <option value="Gasolina">Gasolina</option>
-                                <option value="Diesel">Diésel</option>
-                                <option value="Híbrido">Híbrido</option>
-                                <option value="Eléctrico">Eléctrico</option>
-                            </select>
-                        </div>
+                        <SelectField
+                            label="Combustible"
+                            name="combustible"
+                            value={filters.combustible}
+                            onChange={handleFilterChange}
+                            options={[
+                                { value: '', label: 'Todos' },
+                                { value: 'Gasolina', label: 'Gasolina' },
+                                { value: 'Diesel', label: 'Diésel' },
+                                { value: 'Híbrido', label: 'Híbrido' },
+                                { value: 'Eléctrico', label: 'Eléctrico' }
+                            ]}
+                            className="mb-4"
+                        />
 
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-text-dark dark:text-text-light mb-1">
                                 Precio
                             </label>
                             <div className="grid grid-cols-2 gap-2">
-                                <input
+                                <InputField
                                     type="number"
                                     name="precio_min"
                                     value={filters.precio_min}
                                     onChange={handleFilterChange}
                                     placeholder="Min €"
-                                    className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
                                 />
-                                <input
+                                <InputField
                                     type="number"
                                     name="precio_max"
                                     value={filters.precio_max}
                                     onChange={handleFilterChange}
                                     placeholder="Max €"
-                                    className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
                                 />
                             </div>
                         </div>
@@ -516,21 +522,19 @@ const ExploreCars = () => {
                                 Año
                             </label>
                             <div className="grid grid-cols-2 gap-2">
-                                <input
+                                <InputField
                                     type="number"
                                     name="anio_min"
                                     value={filters.anio_min}
                                     onChange={handleFilterChange}
                                     placeholder="Desde"
-                                    className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
                                 />
-                                <input
+                                <InputField
                                     type="number"
                                     name="anio_max"
                                     value={filters.anio_max}
                                     onChange={handleFilterChange}
                                     placeholder="Hasta"
-                                    className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
                                 />
                             </div>
                         </div>
@@ -540,152 +544,118 @@ const ExploreCars = () => {
                                 Kilómetros
                             </label>
                             <div className="grid grid-cols-2 gap-2">
-                                <input
+                                <InputField
                                     type="number"
                                     name="km_min"
                                     value={filters.km_min}
                                     onChange={handleFilterChange}
                                     placeholder="Min km"
-                                    className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
                                 />
-                                <input
+                                <InputField
                                     type="number"
                                     name="km_max"
                                     value={filters.km_max}
                                     onChange={handleFilterChange}
                                     placeholder="Max km"
-                                    className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
                                 />
                             </div>
                         </div>
 
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-text-dark dark:text-text-light mb-1">
-                                Categoría
-                            </label>
-                            <select
-                                name="id_categoria"
-                                value={filters.id_categoria}
-                                onChange={handleFilterChange}
-                                className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
-                            >
-                                <option value="">Todas las categorías</option>
-                                {categorias.map(categoria => (
-                                    <option key={categoria.id} value={categoria.id}>
-                                        {categoria.nombre}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <SelectField
+                            label="Categoría"
+                            name="id_categoria"
+                            value={filters.id_categoria}
+                            onChange={handleFilterChange}
+                            options={[
+                                { value: '', label: 'Todas las categorías' },
+                                ...categorias.map(categoria => ({ value: categoria.id, label: categoria.nombre }))
+                            ]}
+                            className="mb-4"
+                        />
 
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-text-dark dark:text-text-light mb-1">
-                                Provincia
-                            </label>
-                            <select
-                                name="id_provincia"
-                                value={filters.id_provincia}
-                                onChange={handleFilterChange}
-                                className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
-                            >
-                                <option value="">Todas las provincias</option>
-                                {provincias.map(provincia => (
-                                    <option key={provincia.id} value={provincia.id}>
-                                        {provincia.nombre}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <SelectField
+                            label="Provincia"
+                            name="id_provincia"
+                            value={filters.id_provincia}
+                            onChange={handleFilterChange}
+                            options={[
+                                { value: '', label: 'Todas las provincias' },
+                                ...provincias.map(provincia => ({ value: provincia.id, label: provincia.nombre }))
+                            ]}
+                            className="mb-4"
+                        />
 
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-text-dark dark:text-text-light mb-1">
-                                Transmisión
-                            </label>
-                            <select
-                                name="transmision"
-                                value={filters.transmision}
-                                onChange={handleFilterChange}
-                                className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
-                            >
-                                <option value="">Todas</option>
-                                <option value="Manual">Manual</option>
-                                <option value="Automático">Automático</option>
-                            </select>
-                        </div>
+                        <SelectField
+                            label="Transmisión"
+                            name="transmision"
+                            value={filters.transmision}
+                            onChange={handleFilterChange}
+                            options={[
+                                { value: '', label: 'Todas' },
+                                { value: 'Manual', label: 'Manual' },
+                                { value: 'Automático', label: 'Automático' }
+                            ]}
+                            className="mb-4"
+                        />
 
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-text-dark dark:text-text-light mb-1">
                                 Potencia (CV)
                             </label>
                             <div className="grid grid-cols-2 gap-2">
-                                <input
+                                <InputField
                                     type="number"
                                     name="potencia_min"
                                     value={filters.potencia_min}
                                     onChange={handleFilterChange}
                                     placeholder="Desde"
-                                    className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
                                 />
-                                <input
+                                <InputField
                                     type="number"
                                     name="potencia_max"
                                     value={filters.potencia_max}
                                     onChange={handleFilterChange}
                                     placeholder="Hasta"
-                                    className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
                                 />
                             </div>
                         </div>
 
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-text-dark dark:text-text-light mb-1">
-                                Plazas
-                            </label>
-                            <select
-                                name="plazas"
-                                value={filters.plazas}
-                                onChange={handleFilterChange}
-                                className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
-                            >
-                                <option value="">Todas</option>
-                                {[2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                                    <option key={num} value={num}>{num}</option>
-                                ))}
-                            </select>
-                        </div>
+                        <SelectField
+                            label="Plazas"
+                            name="plazas"
+                            value={filters.plazas}
+                            onChange={handleFilterChange}
+                            options={[
+                                { value: '', label: 'Todas' },
+                                ...[2, 3, 4, 5, 6, 7, 8, 9].map(num => ({ value: num, label: num.toString() }))
+                            ]}
+                            className="mb-4"
+                        />
 
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-text-dark dark:text-text-light mb-1">
-                                Puertas
-                            </label>
-                            <select
-                                name="puertas"
-                                value={filters.puertas}
-                                onChange={handleFilterChange}
-                                className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
-                            >
-                                <option value="">Todas</option>
-                                {[2, 3, 4, 5].map(num => (
-                                    <option key={num} value={num}>{num}</option>
-                                ))}
-                            </select>
-                        </div>
+                        <SelectField
+                            label="Puertas"
+                            name="puertas"
+                            value={filters.puertas}
+                            onChange={handleFilterChange}
+                            options={[
+                                { value: '', label: 'Todas' },
+                                ...[2, 3, 4, 5].map(num => ({ value: num, label: num.toString() }))
+                            ]}
+                            className="mb-4"
+                        />
 
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium text-text-dark dark:text-text-light mb-1">
-                                Solo verificados
-                            </label>
-                            <select
-                                name="verificado"
-                                value={filters.verificado}
-                                onChange={handleFilterChange}
-                                className="w-full rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
-                            >
-                                <option value="">Todos</option>
-                                <option value="true">Solo verificados</option>
-                                <option value="false">No verificados</option>
-                            </select>
-                        </div>
+                        <SelectField
+                            label="Solo verificados"
+                            name="verificado"
+                            value={filters.verificado}
+                            onChange={handleFilterChange}
+                            options={[
+                                { value: '', label: 'Todos' },
+                                { value: 'true', label: 'Solo verificados' },
+                                { value: 'false', label: 'No verificados' }
+                            ]}
+                            className="mb-6"
+                        />
                     </div>
 
                     {/* Lista de coches */}
@@ -696,7 +666,6 @@ const ExploreCars = () => {
                                 type={alertInfo.type}
                                 message={alertInfo.message}
                                 onClose={() => setAlertInfo(null)}
-                                className="mb-4"
                             />
                         )}
 
@@ -713,23 +682,16 @@ const ExploreCars = () => {
                                             className="inline-flex items-center bg-primary/10 text-primary text-xs font-medium px-2.5 py-0.5 rounded-full"
                                         >
                                             {filter.label}: {filter.value}
-                                            <button
-                                                onClick={() => removeFilter(filter.key)}
-                                                className="ml-1 text-primary hover:text-primary-dark"
-                                                aria-label={`Eliminar filtro ${filter.label}`}
-                                            >
-                                                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
+                                            <ClearFilterButton onClick={() => removeFilter(filter.key)} />
                                         </span>
                                     ))}
-                                    <button
+                                    <Button
+                                        variant="link"
                                         onClick={clearAllFilters}
-                                        className="text-xs text-error hover:text-error-dark underline ml-2"
+                                        className="text-xs text-error hover:text-error-dark underline ml-2 p-0"
                                     >
                                         Limpiar todo
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         )}
@@ -737,13 +699,18 @@ const ExploreCars = () => {
                         {/* Opciones de ordenación */}
                         <div className="flex justify-between items-center mb-6">
                             <p className="text-text-dark dark:text-text-secondary">
-                                {loading ? 'Cargando resultados...' : error ? 'Error al cargar coches' : `${coches.length} resultados encontrados`}
+                                {loading ? (
+                                    <>Cargando resultados...</>
+                                ) : error ? (
+                                    'Error al cargar coches'
+                                ) : (
+                                    `${coches.length} resultados encontrados`
+                                )}
                             </p>
-                            <div className="flex items-center">
-                                <label className="text-sm text-text-dark dark:text-text-secondary mr-2">Ordenar por:</label>
-                                <select
+                            <div className="flex items-center gap-2">
+                                <SelectField
                                     name="order_by"
-                                    value={appliedFilters.order_by}
+                                    value={filters.order_by}
                                     onChange={(e) => {
                                         const value = e.target.value;
                                         let orderDir = 'desc';
@@ -752,60 +719,48 @@ const ExploreCars = () => {
                                             orderDir = 'asc';
                                         }
 
-                                        const newFilters = {
-                                            ...appliedFilters,
+                                        setFilters({
+                                            ...filters,
                                             order_by: value,
                                             order_dir: orderDir
-                                        };
-
-                                        setFilters(newFilters);
-                                        setAppliedFilters(newFilters);
+                                        });
                                     }}
-                                    className="rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
-                                >
-                                    <option value="fecha_publicacion">Más recientes</option>
-                                    <option value="precio">Precio (menor a mayor)</option>
-                                    <option value="anio">Año (más nuevo primero)</option>
-                                    <option value="kilometraje">Kilómetros (menor a mayor)</option>
-                                </select>
+                                    options={[
+                                        { value: 'fecha_publicacion', label: 'Más recientes' },
+                                        { value: 'precio', label: 'Precio (menor a mayor)' },
+                                        { value: 'anio', label: 'Año (más nuevo primero)' },
+                                        { value: 'kilometraje', label: 'Kilómetros (menor a mayor)' }
+                                    ]}
+                                    className="w-auto"
+                                />
 
-                                {/* Selector de dirección de ordenamiento */}
-                                <select
+                                <SelectField
                                     name="order_dir"
-                                    value={appliedFilters.order_dir}
-                                    onChange={(e) => {
-                                        const newFilters = { ...appliedFilters, order_dir: e.target.value };
-                                        setFilters(newFilters);
-                                        setAppliedFilters(newFilters);
-                                    }}
-                                    className="ml-2 rounded-md border-secondary-light shadow-sm focus:border-primary focus:ring-primary dark:bg-primary-dark dark:border-secondary-dark dark:text-text-light"
-                                >
-                                    <option value="asc">Ascendente</option>
-                                    <option value="desc">Descendente</option>
-                                </select>
+                                    value={filters.order_dir}
+                                    onChange={(e) => setFilters({ ...filters, order_dir: e.target.value })}
+                                    options={[
+                                        { value: 'asc', label: 'Ascendente' },
+                                        { value: 'desc', label: 'Descendente' }
+                                    ]}
+                                    className="w-auto"
+                                />
                             </div>
                         </div>
 
                         {/* Mostrar error si existe */}
                         {error && (
-                            <div className="bg-red-50 dark:bg-red-900/30 p-4 rounded-md text-red-800 dark:text-red-200 mb-4">
-                                {error}
-                            </div>
+                            <Alert
+                                type="error"
+                                message={error}
+                                onClose={() => setError(null)}
+                            />
                         )}
 
                         {/* Listado de coches */}
                         {loading ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {[...Array(6)].map((_, index) => (
-                                    <div key={index} className="bg-background-light dark:bg-primary-dark rounded-lg shadow-md overflow-hidden animate-pulse">
-                                        <div className="h-48 bg-secondary-light dark:bg-secondary-dark"></div>
-                                        <div className="p-4">
-                                            <div className="h-4 bg-secondary-light dark:bg-secondary-dark rounded w-3/4 mb-2"></div>
-                                            <div className="h-6 bg-secondary-light dark:bg-secondary-dark rounded w-1/2 mb-4"></div>
-                                            <div className="h-4 bg-secondary-light dark:bg-secondary-dark rounded w-full mb-2"></div>
-                                            <div className="h-4 bg-secondary-light dark:bg-secondary-dark rounded w-2/3"></div>
-                                        </div>
-                                    </div>
+                                    <CarSkeleton key={index} />
                                 ))}
                             </div>
                         ) : coches.length === 0 ? (
@@ -826,56 +781,18 @@ const ExploreCars = () => {
                             </div>
                         )}
 
-                        {/* Paginación */}
+                        {/* Paginación mejorada */}
                         {!loading && coches.length > 0 && (
-                            <div className="mt-8 flex justify-center">
-                                <nav className="flex items-center">
-                                    <button
-                                        className={`px-3 py-1 border rounded-l-md border-secondary-light bg-background-light dark:bg-primary-dark dark:border-secondary-dark text-secondary dark:text-text-secondary hover:bg-secondary-light dark:hover:bg-secondary-dark ${paginacion.currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        onClick={() => handlePageChange(paginacion.currentPage - 1)}
-                                        disabled={paginacion.currentPage === 1}
-                                    >
-                                        Anterior
-                                    </button>
-
-                                    {/* Mostrar páginas */}
-                                    {[...Array(Math.min(5, paginacion.totalPages))].map((_, index) => {
-                                        let pageToShow;
-                                        if (paginacion.totalPages <= 5) {
-                                            pageToShow = index + 1;
-                                        } else if (paginacion.currentPage <= 3) {
-                                            pageToShow = index + 1;
-                                        } else if (paginacion.currentPage >= paginacion.totalPages - 2) {
-                                            pageToShow = paginacion.totalPages - 4 + index;
-                                        } else {
-                                            pageToShow = paginacion.currentPage - 2 + index;
-                                        }
-
-                                        if (pageToShow > paginacion.totalPages) return null;
-
-                                        return (
-                                            <button
-                                                key={pageToShow}
-                                                className={`px-3 py-1 border-t border-b border-secondary-light ${pageToShow === paginacion.currentPage
-                                                    ? 'bg-primary/10 dark:bg-primary/20 dark:border-secondary-dark text-primary dark:text-primary'
-                                                    : 'bg-background-light dark:bg-primary-dark dark:border-secondary-dark text-secondary dark:text-text-secondary hover:bg-secondary-light dark:hover:bg-secondary-dark'
-                                                    }`}
-                                                onClick={() => handlePageChange(pageToShow)}
-                                            >
-                                                {pageToShow}
-                                            </button>
-                                        );
-                                    })}
-
-                                    <button
-                                        className={`px-3 py-1 border rounded-r-md border-secondary-light bg-background-light dark:bg-primary-dark dark:border-secondary-dark text-secondary dark:text-text-secondary hover:bg-secondary-light dark:hover:bg-secondary-dark ${paginacion.currentPage === paginacion.totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        onClick={() => handlePageChange(paginacion.currentPage + 1)}
-                                        disabled={paginacion.currentPage === paginacion.totalPages}
-                                    >
-                                        Siguiente
-                                    </button>
-                                </nav>
-                            </div>
+                            <Pagination
+                                currentPage={paginacion.currentPage}
+                                totalPages={paginacion.totalPages}
+                                onPageChange={handlePageChange}
+                                maxPagesToShow={window.innerWidth < 640 ? 3 : 5}
+                                showFirstLast={window.innerWidth >= 768}
+                                showPrevNext={true}
+                                size={window.innerWidth < 640 ? "small" : "normal"}
+                                className="mt-8"
+                            />
                         )}
                     </div>
                 </div>

@@ -91,7 +91,7 @@ const ProfilePage = () => {
           />
         )}
 
-        <div className="bg-secondary-light dark:bg-primary-dark rounded-lg shadow-md overflow-hidden">
+        <div className="bg-primary-light dark:bg-primary-dark rounded-lg shadow-md overflow-hidden">
           <div className="border-b border-primary-light dark:border-primary-dark">
             <nav className="flex -mb-px">
               <button

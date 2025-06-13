@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Auth;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -95,7 +96,8 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $token = $user->createToken('auth_token', ['*'], now()->addHours(24))->plainTextToken;
+        $roles = $user->getRoleNames()->toArray();
+        $token = $user->createToken('auth_token', $roles, now()->addHours(24))->plainTextToken;
 
         Log::info('Login exitoso', ['user_id' => $user->id]);
 
@@ -195,7 +197,8 @@ class AuthController extends Controller
             $user->assignRole(['comprador', 'vendedor']);
         }
 
-        $token = $user->createToken('auth-token')->plainTextToken;
+        $roles = $user->getRoleNames()->toArray();
+        $token = $user->createToken('auth_token', $roles, now()->addHours(24))->plainTextToken;
 
         return response()->json([
             'status' => 'success',
@@ -235,6 +238,28 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Logout exitoso'
+        ]);
+    }
+
+    public function verifyRole(Request $request, $role)
+    {
+        $user = $request->user();
+
+        // Verificar primero con el token (rápido)
+        $tokenHasRole = $user->tokenCan($role);
+
+        // Si el token no tiene el rol, verificar en la base de datos (más lento pero actualizado)
+        if (!$tokenHasRole && $user->hasRole($role)) {
+            // El usuario tiene el rol en la base de datos pero no en el token
+            // Considera implementar la lógica de renovación de token aquí
+            return response()->json([
+                'hasRole' => true,
+                'tokenOutdated' => true
+            ]);
+        }
+
+        return response()->json([
+            'hasRole' => $tokenHasRole
         ]);
     }
 }

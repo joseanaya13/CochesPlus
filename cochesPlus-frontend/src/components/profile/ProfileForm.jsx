@@ -56,7 +56,6 @@ const ProfileForm = ({ userData, onSubmit, loading }) => {
                 disabled={true}
                 readOnly
                 className=""
-                helperText="El correo electrónico no se puede cambiar."
             />
 
             <InputField

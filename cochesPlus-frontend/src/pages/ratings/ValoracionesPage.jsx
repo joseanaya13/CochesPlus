@@ -140,10 +140,10 @@ const ValoracionesPage = () => {
 
     return (
         <Layout>
-            <div className="bg-primary text-white">
+            <div className="bg-primary-light dark:bg-primary-dark">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <h1 className="text-3xl font-extrabold">Valoraciones</h1>
-                    <p className="mt-2">Gestiona tus valoraciones como comprador y vendedor</p>
+                    <p className="mt-2 text-text-dark dark:text-text-light">Gestiona tus valoraciones como comprador y vendedor</p>
                 </div>
             </div>
 
@@ -260,9 +260,12 @@ const ValoracionesPage = () => {
                         {/* Tab: Valoraciones realizadas */}
                         {activeTab === 'realizadas' && (
                             <div>
-                                <h2 className="text-xl font-bold text-text-dark dark:text-text-light mb-4">
-                                    Mis valoraciones realizadas
-                                </h2>
+                                <div className="bg-primary-light dark:bg-primary-dark">
+                                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                                        <h1 className="text-3xl font-extrabold">Mis Compras y Ventas</h1>
+                                        <p className="mt-2 text-text-dark dark:text-text-light">Gestiona tus transacciones de compra y venta</p>
+                                    </div>
+                                </div>
 
                                 {valoracionesRealizadas.length === 0 ? (
                                     <div className="text-center py-8">

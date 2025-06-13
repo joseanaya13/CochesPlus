@@ -49,10 +49,10 @@ const Favorites = () => {
 
     return (
         <Layout>
-            <div className="bg-primary text-on-primary">
+            <div className="bg-primary-light dark:bg-primary-dark">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <h1 className="text-3xl font-extrabold">Mis Favoritos</h1>
-                    <p className="mt-2">Coches que has guardado para revisar más tarde</p>
+                    <p className="mt-2 text-text-dark dark:text-text-light">Coches que has guardado para revisar más tarde</p>
                 </div>
             </div>
 

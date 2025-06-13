@@ -164,10 +164,10 @@ const ComprasPage = () => {
 
     return (
         <Layout>
-            <div className="bg-primary text-white">
+            <div className="bg-primary-light dark:bg-primary-dark">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <h1 className="text-3xl font-extrabold">Mis Compras y Ventas</h1>
-                    <p className="mt-2">Gestiona tus transacciones de compra y venta</p>
+                    <p className="mt-2 text-text-dark dark:text-text-light">Gestiona tus transacciones de compra y venta</p>
                 </div>
             </div>
 
@@ -241,7 +241,7 @@ const ComprasPage = () => {
                                 ) : (
                                     <div className="space-y-4">
                                         {misCompras.map((compra) => (
-                                            <div key={compra.id} className="bg-secondary-light dark:bg-secondary-dark rounded-lg p-4 border border-secondary-light dark:border-secondary-dark">
+                                            <div key={compra.id} className="bg-primary-light dark:bg-primary-dark rounded-lg p-4 border border-primary-dark dark:border-primary-light">
                                                 <div className="flex flex-col md:flex-row md:items-center justify-between">
                                                     <div className="flex-1">
                                                         <div className="flex items-start justify-between mb-2">

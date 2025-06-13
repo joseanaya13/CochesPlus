@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Http\Request;
+use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\RoleOrAbility;
 use Illuminate\Foundation\Application;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -18,10 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
         $middleware->alias([
-            'broadcast' => \App\Http\Middleware\Authenticate::class,
+            'broadcast' => Authenticate::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
+            'role_or_ability' => RoleOrAbility::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

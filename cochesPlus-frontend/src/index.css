@@ -26,7 +26,7 @@
 
   /* Colores de texto */
   --color-text-light: #f9f9f9;       /* Texto en fondos oscuros */
-  --color-text-dark: #333333;         /* Texto en fondos claros */
+  --color-text-dark: #000000;         /* Texto en fondos claros */
   --color-text-secondary: #9ca3af;    /* Texto secundario */
 }
 
