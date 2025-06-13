@@ -3,6 +3,9 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import './index.css';
 
+// Importar el componente de protección mejorado
+import ProtectedRoute from './components/routes/ProtectedRoute';
+
 // Páginas
 import Home from './pages/Home';
 
@@ -42,28 +45,57 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminAds from './pages/admin/AdminAds';
 import AdminMessages from './pages/admin/AdminMessages';
 
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+// Componente de carga mejorado
+const LoadingSpinner = () => (
+  <div className="flex justify-center items-center h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
+      <p className="text-gray-600 dark:text-gray-400">Verificando permisos...</p>
+    </div>
+  </div>
+);
 
-  if (loading) {
-    return <div className="flex justify-center items-center h-screen">Cargando...</div>;
-  }
+// Componente para rutas que requieren autenticación básica
+const AuthenticatedRoute = ({ children }) => (
+  <ProtectedRoute>
+    {children}
+  </ProtectedRoute>
+);
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+// Componente para rutas que requieren rol de comprador o vendedor
+const UserRoute = ({ children }) => (
+  <ProtectedRoute
+    requiredRole={['comprador', 'vendedor']}
+  >
+    {children}
+  </ProtectedRoute>
+);
 
-  return children;
-};
+// Componente para rutas que requieren rol de vendedor
+const SellerRoute = ({ children }) => (
+  <ProtectedRoute
+    requiredRole="vendedor"
+    
+  >
+    {children}
+  </ProtectedRoute>
+);
 
-const AdminRoute = ({ children }) => {
-  const { isAuthenticated, hasRole, loading } = useAuth();
+// Componente para rutas que requieren rol de administrador
+const AdminRoute = ({ children }) => (
+  <ProtectedRoute
+    requiredRole="admin"
+  >
+    {children}
+  </ProtectedRoute>
+);
 
-  if (loading) {
-    return <div className="flex justify-center items-center h-screen">Cargando...</div>;
-  }
+// Componente para redirigir usuarios autenticados lejos del login/register
+const GuestRoute = ({ children }) => {
+  const { isAuthenticated } = useAuth();
 
-  if (!isAuthenticated || !hasRole('admin')) {
+
+  if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 
@@ -79,30 +111,65 @@ export default function App() {
             {/* Página de inicio como ruta principal */}
             <Route path="/" element={<Home />} />
 
-            {/* Rutas públicas */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            {/* <Route path="/forgot-password" element={<ForgotPassword />} /> */}
-            {/* <Route path="/reset-password" element={<ResetPassword />} /> */}
+            {/* Rutas públicas - Solo para usuarios no autenticados */}
+            <Route path="/login" element={
+              <GuestRoute>
+                <Login />
+              </GuestRoute>
+            } />
+            <Route path="/register" element={
+              <GuestRoute>
+                <Register />
+              </GuestRoute>
+            } />
+            {/* <Route path="/forgot-password" element={
+              <GuestRoute>
+                <ForgotPassword />
+              </GuestRoute>
+            } /> */}
+            {/* <Route path="/reset-password" element={
+              <GuestRoute>
+                <ResetPassword />
+              </GuestRoute>
+            } /> */}
 
-            {/* Rutas de perfil */}
-            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-            <Route path="/favoritos" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
+            {/* Rutas de perfil - Requieren autenticación básica */}
+            <Route path="/profile" element={
+              <AuthenticatedRoute>
+                <ProfilePage />
+              </AuthenticatedRoute>
+            } />
 
-            {/* Rutas de mensajes */}
-            <Route path="/mensajes" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+            {/* Rutas que requieren rol de comprador o vendedor */}
+            <Route path="/favoritos" element={
+              <UserRoute>
+                <Favorites />
+              </UserRoute>
+            } />
 
-            {/* Rutas de valoraciones */}
-            <Route path="/valoraciones" element={<ProtectedRoute><ValoracionesPage /></ProtectedRoute>} />
+            <Route path="/mensajes" element={
+              <UserRoute>
+                <Messages />
+              </UserRoute>
+            } />
 
-            {/* Rutas de compras */}
-            <Route path="/compras" element={<ProtectedRoute><ComprasPage /></ProtectedRoute>} />
+            <Route path="/valoraciones" element={
+              <UserRoute>
+                <ValoracionesPage />
+              </UserRoute>
+            } />
 
-            {/* Exploración de coches */}
+            <Route path="/compras" element={
+              <UserRoute>
+                <ComprasPage />
+              </UserRoute>
+            } />
+
+            {/* Exploración de coches - Públicas */}
             <Route path="/coches" element={<ExploreCars />} />
             <Route path="/coches/:id" element={<CarDetail />} />
 
-            {/* Páginas informativas */}
+            {/* Páginas informativas - Públicas */}
             {/* <Route path="/about" element={<About />} /> */}
             {/* <Route path="/contacto" element={<Contact />} /> */}
             {/* <Route path="/faq" element={<FAQ />} /> */}
@@ -110,25 +177,55 @@ export default function App() {
             <Route path="/terminos" element={<TermsOfService />} />
             <Route path="/cookies" element={<PrivacyPolicy />} />
 
-            {/* Rutas de administración */}
-            <Route path="/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
+            {/* Rutas de administración - Solo para administradores */}
+            <Route path="/dashboard" element={
+              <AdminRoute>
+                <Dashboard />
+              </AdminRoute>
+            } />
 
-            {/* RF4: Gestionar Usuarios (Administrador) */}
-            <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+            <Route path="/admin/users" element={
+              <AdminRoute>
+                <AdminUsers />
+              </AdminRoute>
+            } />
 
-            {/* RF8: Gestionar Anuncios (Administrador) */}
-            <Route path="/admin/ads" element={<AdminRoute><AdminAds /></AdminRoute>} />
+            <Route path="/admin/ads" element={
+              <AdminRoute>
+                <AdminAds />
+              </AdminRoute>
+            } />
 
-            {/* RF15: Gestionar Mensajes (Administrador) */}
-            <Route path="/admin/messages" element={<AdminRoute><AdminMessages /></AdminRoute>} />
+            <Route path="/admin/messages" element={
+              <AdminRoute>
+                <AdminMessages />
+              </AdminRoute>
+            } />
 
-            {/* Verificación de documentos (ya existente) */}
-            <Route path="/admin/verificar-documentos" element={<AdminRoute><VerifyDocuments /></AdminRoute>} />
+            <Route path="/admin/verificar-documentos" element={
+              <AdminRoute>
+                <VerifyDocuments />
+              </AdminRoute>
+            } />
 
-            {/* Rutas para vendedores */}
-            <Route path="/vendedor/coches" element={<ProtectedRoute><MyCars /></ProtectedRoute>} />
-            <Route path="/vendedor/publicar" element={<ProtectedRoute><NewCar /></ProtectedRoute>} />
-            <Route path="/vendedor/editar/:id" element={<ProtectedRoute><EditCar /></ProtectedRoute>} />
+            {/* Rutas para vendedores - Solo para usuarios con rol vendedor */}
+            <Route path="/vendedor/coches" element={
+              <SellerRoute>
+                <MyCars />
+              </SellerRoute>
+            } />
+
+            <Route path="/vendedor/publicar" element={
+              <SellerRoute>
+                <NewCar />
+              </SellerRoute>
+            } />
+
+            <Route path="/vendedor/editar/:id" element={
+              <SellerRoute>
+                <EditCar />
+              </SellerRoute>
+            } />
 
             {/* Ruta de fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />

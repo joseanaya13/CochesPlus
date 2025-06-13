@@ -8,8 +8,11 @@ import Features from '../components/home/Features';
 // import Testimonials from '../components/home/Testimonials';
 import CallToAction from '../components/home/CallToAction';
 import ScrollReveal from '../utils/ScrollReveal';
+import { useAuth } from '../contexts/AuthContext';
 
 const Home = () => {
+    const { isAuthenticated } = useAuth();
+
     return (
         <Layout>
             {/* Hero Section - Primera impresión con call-to-action */}
@@ -40,17 +43,19 @@ const Home = () => {
                 {/* <Testimonials /> */}
             </ScrollReveal>
 
-            {/* Call to Action - Invitación final con efecto de fade */}
-            <ScrollReveal animation="fade" delay={150} threshold={0.1}>
-                <CallToAction
-                    title="¿Listo para encontrar tu próximo coche?"
-                    description="Únete a nuestra comunidad de más de 50.000 usuarios satisfechos y encuentra el vehículo perfecto para ti o vende el tuyo al mejor precio."
-                    primaryButtonText="Registrarse"
-                    primaryButtonLink="/register"
-                    secondaryButtonText="Explorar coches"
-                    secondaryButtonLink="/coches"
-                />
-            </ScrollReveal>
+            {/* Call to Action - Invitación final con efecto de fade - Solo para usuarios no autenticados */}
+            {!isAuthenticated && (
+                <ScrollReveal animation="fade" delay={150} threshold={0.1}>
+                    <CallToAction
+                        title="¿Listo para encontrar tu próximo coche?"
+                        description="Únete a nuestra comunidad y encuentra el vehículo perfecto para ti o vende el tuyo al mejor precio."
+                        primaryButtonText="Registrarse"
+                        primaryButtonLink="/register"
+                        secondaryButtonText="Explorar coches"
+                        secondaryButtonLink="/coches"
+                    />
+                </ScrollReveal>
+            )}
         </Layout>
     );
 };

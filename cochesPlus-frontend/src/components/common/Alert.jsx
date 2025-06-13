@@ -1,7 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 
 const Alert = ({ message, type = 'info', onClose }) => {
+    const [visible, setVisible] = useState(true);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setVisible(false);
+            onClose();
+        }, 5000);
+        return () => clearTimeout(timer);
+    }, [onClose]);
+
     const getAlertClasses = () => {
         switch (type) {
             case 'success':
@@ -15,11 +25,13 @@ const Alert = ({ message, type = 'info', onClose }) => {
         }
     };
 
+    if (!visible) return null;
+
     return (
         <div className={`p-4 mb-4 rounded-md ${getAlertClasses()}`}>
             <div className="flex items-center justify-between">
                 <span>{message}</span>
-                <button className="ml-4 text-white" onClick={onClose}>
+                <button className="ml-4 text-white" onClick={() => { setVisible(false); onClose(); }}>
                     X
                 </button>
             </div>

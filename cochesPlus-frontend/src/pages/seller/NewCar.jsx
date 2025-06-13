@@ -31,7 +31,7 @@ const NewCar = () => {
 
             setSuccess(true);
             setTimeout(() => {
-                navigate('/profile', {
+                navigate('/', {
                     state: {
                         successMessage: 'Su anuncio ha sido publicado correctamente.'
                     }

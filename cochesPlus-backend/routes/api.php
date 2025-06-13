@@ -42,7 +42,7 @@ Route::get('/vendedores/{vendedorId}/valoraciones', [ValoracionController::class
 Route::middleware(['auth:sanctum'])->group(function () {
     // Autenticación
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/verify-role/{role}', [AuthController::class, 'verifyRole']);
+    Route::get('/validate-user', [AuthController::class, 'validateCurrentUser']);
     Route::post('/broadcasting/auth', [BroadcastingAuthController::class, 'authenticate']);
 
     // Perfil de usuario

@@ -241,25 +241,25 @@ class AuthController extends Controller
         ]);
     }
 
-    public function verifyRole(Request $request, $role)
+    public function validateCurrentUser(Request $request)
     {
         $user = $request->user();
 
-        // Verificar primero con el token (rápido)
-        $tokenHasRole = $user->tokenCan($role);
-
-        // Si el token no tiene el rol, verificar en la base de datos (más lento pero actualizado)
-        if (!$tokenHasRole && $user->hasRole($role)) {
-            // El usuario tiene el rol en la base de datos pero no en el token
-            // Considera implementar la lógica de renovación de token aquí
+        if (!$user) {
             return response()->json([
-                'hasRole' => true,
-                'tokenOutdated' => true
-            ]);
+                'message' => 'No autenticado'
+            ], 401);
         }
 
+        // Obtener roles directamente de la base de datos
+        $currentRoles = $user->getRoleNames();
+
         return response()->json([
-            'hasRole' => $tokenHasRole
+            'user' => $user,
+            'roles' => $currentRoles,
+            'is_admin' => $user->hasRole('admin'),
+            'is_vendedor' => $user->hasRole('vendedor'),
+            'is_comprador' => $user->hasRole('comprador')
         ]);
     }
 }

@@ -15,23 +15,62 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState(null);    // Estado para controlar si ya se ha validado al usuario
+    const [hasValidated, setHasValidated] = useState(false);
+
+    // Función para validar usuario actual con el servidor
+    const validateCurrentUser = async () => {
+        // Evitar validaciones repetidas innecesarias
+        if (hasValidated && user) {
+            console.log('Usuario ya validado previamente, omitiendo validación');
+            return { user, roles };
+        }
+
+        try {
+            console.log('Validando usuario con el servidor...');
+            const response = await authService.validateCurrentUser();
+            setUser(response.user);
+            setRoles(response.roles || []);
+            setHasValidated(true);
+
+            // Actualizar localStorage con datos del servidor
+            localStorage.setItem('user', JSON.stringify(response.user));
+            localStorage.setItem('roles', JSON.stringify(response.roles || []));
+
+            return response;
+        } catch (err) {
+            console.error('Error al validar usuario:', err);
+            // Si hay error, limpiar datos locales
+            logout();
+            throw err;
+        }
+    };
 
     useEffect(() => {
         const loadUser = async () => {
             try {
                 const storedUser = authService.getCurrentUser();
-                if (storedUser) {
-                    setUser(storedUser);
-                    // Reconectar Echo después de cargar el usuario
+                const token = localStorage.getItem('token');
+
+                if (storedUser && token) {
+                    // IMPORTANTE: Validar con el servidor en lugar de confiar en localStorage
+                    await validateCurrentUser();
+
+                    // Reconectar Echo después de validar
                     setTimeout(() => {
                         reconnectEcho();
                     }, 100);
+                } else {
+                    setUser(null);
+                    setRoles([]);
                 }
             } catch (err) {
                 console.error('Error al cargar usuario:', err);
                 setError('Error al cargar información del usuario');
+                setUser(null);
+                setRoles([]);
             } finally {
                 setLoading(false);
             }
@@ -45,7 +84,9 @@ export const AuthProvider = ({ children }) => {
         setError(null);
         try {
             const response = await authService.register(userData);
-            setUser(response.user);
+
+            // Validar con el servidor después del registro
+            await validateCurrentUser();
 
             // Conectar Echo después del registro
             setTimeout(() => {
@@ -66,7 +107,9 @@ export const AuthProvider = ({ children }) => {
         setError(null);
         try {
             const response = await authService.login(credentials);
-            setUser(response.user);
+
+            // Validar con el servidor después del login
+            await validateCurrentUser();
 
             // Conectar Echo después del login
             setTimeout(() => {
@@ -80,9 +123,7 @@ export const AuthProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
-
-    const logout = async () => {
+    }; const logout = async () => {
         setLoading(true);
         setError(null);
         try {
@@ -91,6 +132,8 @@ export const AuthProvider = ({ children }) => {
 
             await authService.logout();
             setUser(null);
+            setRoles([]);
+            setHasValidated(false); // Resetear el estado de validación
         } catch (err) {
             setError(err.message || 'Error al cerrar sesión');
         } finally {
@@ -99,17 +142,19 @@ export const AuthProvider = ({ children }) => {
     };
 
     const hasRole = (role) => {
-        const roles = authService.getRoles();
+        // Usar los roles del estado (validados por el servidor) en lugar de localStorage
         return Array.isArray(roles) && roles.includes(role);
     };
 
     const value = {
         user,
+        roles,
         loading,
         error,
         register,
         login,
         logout,
+        validateCurrentUser,
         isAuthenticated: !!user,
         hasRole
     };

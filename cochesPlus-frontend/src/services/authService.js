@@ -2,6 +2,19 @@ import apiService from './apiService';
 
 const authService = {
     /**
+     * Validar usuario actual con el servidor
+     */
+    validateCurrentUser: async () => {
+        try {
+            const response = await apiService.get('/validate-user');
+            return response;
+        } catch (error) {
+            console.error('Error al validar usuario:', error);
+            throw error;
+        }
+    },
+
+    /**
      * Registrar un nuevo usuario
      */
     register: async (userData) => {
@@ -63,49 +76,6 @@ const authService = {
     },
 
     /**
-     * Solicitar recuperación de contraseña
-     */
-    forgotPassword: async (email) => {
-        try {
-            const response = await apiService.post('/forgot-password', { email });
-            return {
-                status: 'success',
-                message: response.status || 'Se ha enviado un enlace de recuperación a tu correo electrónico'
-            };
-        } catch (error) {
-            console.error('Error en recuperación de contraseña:', error);
-            throw {
-                message: error.message || 'No se pudo enviar el enlace de recuperación'
-            };
-        }
-    },
-
-    /**
-     * Restablecer contraseña con token
-     */
-    resetPassword: async (data) => {
-        try {
-            const resetData = {
-                token: data.token,
-                email: data.email,
-                password: data.password,
-                password_confirmation: data.password_confirmation
-            };
-
-            const response = await apiService.post('/reset-password', resetData);
-            return {
-                status: 'success',
-                message: response.status || 'Contraseña restablecida correctamente'
-            };
-        } catch (error) {
-            console.error('Error en restablecimiento de contraseña:', error);
-            throw {
-                message: error.message || 'No se pudo restablecer la contraseña'
-            };
-        }
-    },
-
-    /**
      * Verificar si el usuario está autenticado
      */
     isAuthenticated: () => {
@@ -122,6 +92,7 @@ const authService = {
 
     /**
      * Obtener roles del usuario
+     * NOTA: Solo para uso interno, la validación real debe hacerse en el servidor
      */
     getRoles: () => {
         const rolesStr = localStorage.getItem('roles');
@@ -130,6 +101,7 @@ const authService = {
 
     /**
      * Comprobar si el usuario tiene un rol específico
+     * NOTA: Solo para uso interno, la validación real debe hacerse en el servidor
      */
     hasRole: (roleName) => {
         const roles = authService.getRoles();

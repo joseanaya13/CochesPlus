@@ -21,13 +21,15 @@ const ValoracionesPage = () => {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [successMessage, setSuccessMessage] = useState('');
-
-    // Estados para el modal de valoración
+    const [successMessage, setSuccessMessage] = useState('');    // Estados para el modal de valoración
     const [showValoracionModal, setShowValoracionModal] = useState(false);
     const [compraSeleccionada, setCompraSeleccionada] = useState(null);
     const [valoracionEnEdicion, setValoracionEnEdicion] = useState(null);
     const [loadingValoracion, setLoadingValoracion] = useState(false);
+
+    // Estados para el modal de confirmación de eliminación
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [valoracionParaEliminar, setValoracionParaEliminar] = useState(null);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -96,21 +98,34 @@ const ValoracionesPage = () => {
         } finally {
             setLoadingValoracion(false);
         }
+    }; const handleEliminarValoracion = (valoracion) => {
+        setValoracionParaEliminar(valoracion);
+        setShowDeleteModal(true);
     };
-
-    const handleEliminarValoracion = async (valoracionId) => {
-        if (!window.confirm('¿Estás seguro de que quieres eliminar esta valoración?')) {
-            return;
-        }
-
+    const confirmarEliminarValoracion = async () => {
         try {
-            await valoracionService.eliminarValoracion(valoracionId);
-            setSuccessMessage('Valoración eliminada correctamente');
+            setLoading(true);
+            await valoracionService.eliminarValoracion(valoracionParaEliminar.id);
+            setShowDeleteModal(false);
+            setValoracionParaEliminar(null);
+
+            // Retraso breve para permitir que se cierre el modal antes de mostrar el mensaje de éxito
+            setTimeout(() => {
+                setSuccessMessage('La valoración ha sido eliminada correctamente');
+            }, 300);
+
             await loadData();
         } catch (err) {
             console.error('Error al eliminar valoración:', err);
-            setError('Error al eliminar la valoración');
+            setError('Error al eliminar la valoración: ' + (err.message || 'Se produjo un error desconocido'));
+        } finally {
+            setLoading(false);
         }
+    };
+
+    const cancelarEliminarValoracion = () => {
+        setShowDeleteModal(false);
+        setValoracionParaEliminar(null);
     };
 
     const closeModal = () => {
@@ -174,8 +189,8 @@ const ValoracionesPage = () => {
                             <button
                                 onClick={() => setActiveTab('pendientes')}
                                 className={`py-4 px-6 font-medium text-sm focus:outline-none transition-colors duration-200 ${activeTab === 'pendientes'
-                                        ? 'border-b-2 border-primary text-primary'
-                                        : 'text-text-dark dark:text-text-light hover:text-primary'
+                                    ? 'border-b-2 border-primary text-primary'
+                                    : 'text-text-dark dark:text-text-light hover:text-primary'
                                     }`}
                             >
                                 Pendientes de valorar ({comprasSinValorar.length})
@@ -183,8 +198,8 @@ const ValoracionesPage = () => {
                             <button
                                 onClick={() => setActiveTab('realizadas')}
                                 className={`py-4 px-6 font-medium text-sm focus:outline-none transition-colors duration-200 ${activeTab === 'realizadas'
-                                        ? 'border-b-2 border-primary text-primary'
-                                        : 'text-text-dark dark:text-text-light hover:text-primary'
+                                    ? 'border-b-2 border-primary text-primary'
+                                    : 'text-text-dark dark:text-text-light hover:text-primary'
                                     }`}
                             >
                                 Mis valoraciones ({valoracionesRealizadas.length})
@@ -192,8 +207,8 @@ const ValoracionesPage = () => {
                             <button
                                 onClick={() => setActiveTab('recibidas')}
                                 className={`py-4 px-6 font-medium text-sm focus:outline-none transition-colors duration-200 ${activeTab === 'recibidas'
-                                        ? 'border-b-2 border-primary text-primary'
-                                        : 'text-text-dark dark:text-text-light hover:text-primary'
+                                    ? 'border-b-2 border-primary text-primary'
+                                    : 'text-text-dark dark:text-text-light hover:text-primary'
                                     }`}
                             >
                                 Valoraciones recibidas ({estadisticasVendedor?.estadisticas?.total || 0})
@@ -292,8 +307,8 @@ const ValoracionesPage = () => {
                                                                 <span
                                                                     key={star}
                                                                     className={`text-lg ${star <= valoracion.puntuacion
-                                                                            ? 'text-warning'
-                                                                            : 'text-gray-300 dark:text-gray-600'
+                                                                        ? 'text-warning'
+                                                                        : 'text-gray-300 dark:text-gray-600'
                                                                         }`}
                                                                 >
                                                                     ★
@@ -325,9 +340,8 @@ const ValoracionesPage = () => {
                                                             >
                                                                 Editar
                                                             </Button>
-                                                        )}
-                                                        <Button
-                                                            onClick={() => handleEliminarValoracion(valoracion.id)}
+                                                        )}                                                        <Button
+                                                            onClick={() => handleEliminarValoracion(valoracion)}
                                                             variant="danger"
                                                             className="text-xs"
                                                         >
@@ -359,9 +373,7 @@ const ValoracionesPage = () => {
                         )}
                     </div>
                 </div>
-            </div>
-
-            {/* Modal para valorar/editar valoración */}
+            </div>            {/* Modal para valorar/editar valoración */}
             {showValoracionModal && compraSeleccionada && (
                 <Modal
                     isOpen={showValoracionModal}
@@ -377,6 +389,52 @@ const ValoracionesPage = () => {
                         error={error}
                         initialValoracion={valoracionEnEdicion}
                     />
+                </Modal>
+            )}
+
+            {/* Modal de confirmación para eliminar valoración */}
+            {showDeleteModal && valoracionParaEliminar && (
+                <Modal
+                    isOpen={showDeleteModal}
+                    onClose={cancelarEliminarValoracion}
+                    title="Confirmar eliminación"
+                    confirmAction={confirmarEliminarValoracion}
+                    confirmText="Eliminar"
+                    cancelText="Cancelar"
+                    size="sm"
+                >                    <div className="p-4">
+                        <div className="flex items-center mb-4 text-error">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mr-3 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <p className="font-medium text-lg">¿Estás seguro que deseas eliminar esta valoración?</p>
+                        </div>
+                        <p className="mb-4 text-text-secondary dark:text-text-secondary">Esta acción no se puede deshacer.</p>
+
+                        <div className="bg-secondary-light dark:bg-secondary-dark p-4 rounded-md border border-gray-200 dark:border-gray-700 mt-4">
+                            <div className="flex items-center space-x-2 mb-2">
+                                {[1, 2, 3, 4, 5].map(star => (
+                                    <span
+                                        key={star}
+                                        className={`text-lg ${star <= valoracionParaEliminar.puntuacion
+                                            ? 'text-warning'
+                                            : 'text-gray-300 dark:text-gray-600'
+                                            }`}
+                                    >
+                                        ★
+                                    </span>
+                                ))}
+                            </div>
+                            <p className="font-medium text-text-dark dark:text-text-light mb-2">
+                                {valoracionParaEliminar.compra?.coche?.marca?.nombre} {valoracionParaEliminar.compra?.coche?.modelo?.nombre}
+                            </p>
+                            {valoracionParaEliminar.comentario && (
+                                <p className="text-sm text-text-dark dark:text-text-light italic mt-2 border-l-4 border-gray-300 dark:border-gray-600 pl-3">
+                                    "{valoracionParaEliminar.comentario}"
+                                </p>
+                            )}
+                        </div>
+                    </div>
                 </Modal>
             )}
         </Layout>

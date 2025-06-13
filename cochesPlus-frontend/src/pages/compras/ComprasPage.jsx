@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Button from '../../components/common/Button';
 import Alert from '../../components/common/Alert';
@@ -9,6 +10,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const ComprasPage = () => {
     const { isAuthenticated } = useAuth();
+    const navigate = useNavigate();
 
     const [activeTab, setActiveTab] = useState('compras');
     const [misCompras, setMisCompras] = useState([]);
@@ -24,16 +26,14 @@ const ComprasPage = () => {
     const [actionLoading, setActionLoading] = useState(false);
     // Modal para confirmar compra
     const [showConfirmCompraModal, setShowConfirmCompraModal] = useState(false);
-    const [compraToConfirm, setCompraToConfirm] = useState(null);
-
-    useEffect(() => {
+    const [compraToConfirm, setCompraToConfirm] = useState(null); useEffect(() => {
         if (!isAuthenticated) {
             // Redirigir a login si no está autenticado
-            window.location.href = '/login';
+            navigate('/login');
             return;
         }
         loadData();
-    }, [isAuthenticated]);
+    }, [isAuthenticated, navigate]);
 
     const loadData = async () => {
         try {
@@ -316,11 +316,9 @@ const ComprasPage = () => {
                                                             >
                                                                 Cancelar
                                                             </Button>
-                                                        )}
-
-                                                        {compra.estado === 'CONFIRMADA' && !compra.valoracion && (
+                                                        )}                                                        {compra.estado === 'CONFIRMADA' && !compra.valoracion && (
                                                             <Button
-                                                                onClick={() => window.location.href = '/valoraciones'}
+                                                                onClick={() => navigate('/valoraciones')}
                                                                 variant="primary"
                                                                 className="text-sm"
                                                             >
