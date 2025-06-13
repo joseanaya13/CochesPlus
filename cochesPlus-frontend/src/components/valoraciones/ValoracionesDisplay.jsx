@@ -23,35 +23,6 @@ const ValoracionesDisplay = ({
         return stars;
     };
 
-    const renderDistribucion = (distribucion) => {
-        const total = Object.values(distribucion).reduce((sum, count) => sum + count, 0);
-
-        return (
-            <div className="space-y-2">
-                {[5, 4, 3, 2, 1].map(rating => {
-                    const count = distribucion[rating] || 0;
-                    const percentage = total > 0 ? (count / total) * 100 : 0;
-
-                    return (
-                        <div key={rating} className="flex items-center space-x-2 text-sm">
-                            <span className="w-3 text-text-secondary dark:text-text-secondary">{rating}</span>
-                            <span className="text-warning">★</span>
-                            <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                <div
-                                    className="bg-warning h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${percentage}%` }}
-                                ></div>
-                            </div>
-                            <span className="w-8 text-xs text-text-secondary dark:text-text-secondary text-right">
-                                {count}
-                            </span>
-                        </div>
-                    );
-                })}
-            </div>
-        );
-    };
-
     if (loading) {
         return (
             <div className="space-y-4">
@@ -102,53 +73,6 @@ const ValoracionesDisplay = ({
 
     return (
         <div className="space-y-6">
-            {/* Estadísticas generales */}
-            {estadisticas && !showCompact && (
-                <div className="bg-background-light dark:bg-primary-dark rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-text-dark dark:text-text-light mb-4">
-                        Resumen de valoraciones
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Promedio y total */}
-                        <div className="text-center">
-                            <div className="text-4xl font-bold text-primary mb-2">
-                                {estadisticas.promedio}
-                            </div>
-                            <div className="flex justify-center mb-2">
-                                {renderStars(Math.round(estadisticas.promedio), 'text-xl')}
-                            </div>
-                            <p className="text-text-secondary dark:text-text-secondary">
-                                Basado en {estadisticas.total} valoracion{estadisticas.total !== 1 ? 'es' : ''}
-                            </p>
-                        </div>
-
-                        {/* Distribución de estrellas */}
-                        <div>
-                            <h4 className="font-medium text-text-dark dark:text-text-light mb-3">
-                                Distribución de puntuaciones
-                            </h4>
-                            {renderDistribucion(estadisticas.distribucion)}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Resumen compacto */}
-            {estadisticas && showCompact && (
-                <div className="flex items-center space-x-3 p-3 bg-background-light dark:bg-primary-dark rounded-lg">
-                    <div className="flex items-center space-x-1">
-                        {renderStars(Math.round(estadisticas.promedio))}
-                    </div>
-                    <span className="font-medium text-text-dark dark:text-text-light">
-                        {estadisticas.promedio}
-                    </span>
-                    <span className="text-text-secondary dark:text-text-secondary text-sm">
-                        ({estadisticas.total} valoracion{estadisticas.total !== 1 ? 'es' : ''})
-                    </span>
-                </div>
-            )}
-
             {/* Lista de valoraciones */}
             <div className="space-y-4">
                 {!showCompact && (

@@ -87,7 +87,7 @@ class CocheService {
     }
 
     verificarCoche(cocheId, verificado) {
-        return apiService.put(`/coches/${cocheId}/verificar`, { verificado });
+        return apiService.put(`admin/coches/${cocheId}/verificar`, { verificado });
     }
 }
 

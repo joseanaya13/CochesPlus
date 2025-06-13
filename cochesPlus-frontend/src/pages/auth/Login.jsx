@@ -34,7 +34,7 @@ const Login = () => {
 
     return (
         <Layout hideFooter={true} hideNavbar={true}>
-            <div className="min-h-screen flex flex-col md:flex-row items-stretch">
+            <div className="min-h-100 flex flex-col md:flex-row items-stretch">
                 {/* Lado izquierdo - Imagen de fondo con overlay */}
                 <div className="hidden md:flex md:w-1/2 bg-primary-dark relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-r from-primary-dark/90 to-primary/70"></div>
@@ -85,7 +85,7 @@ const Login = () => {
                 </div>
                 
                 {/* Lado derecho - Formulario */}
-                <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12 bg-background-light dark:bg-background-dark">
+                <div className="min-h-screen w-full md:w-1/2 flex items-center justify-center p-6 md:p-12 bg-background-light dark:bg-background-dark">
                     <div className="w-full max-w-md">
                         <div className="md:hidden text-center mb-10 animate-slide-up">
                             <div className="flex items-center justify-center mb-6">

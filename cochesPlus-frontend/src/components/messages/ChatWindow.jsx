@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import { useAuth } from '../../contexts/AuthContext';
 import messageService from '../../services/messageService';
 import { getEcho } from '../../services/echoService';
+import Button from '../common/Button';
+import Spinner from '../common/Spinner';
 
 // Función auxiliar para formatear fechas
 const formatDate = (dateString) => {
@@ -35,8 +37,6 @@ const formatDate = (dateString) => {
         return '';
     }
 };
-import Button from '../common/Button';
-import Spinner from '../common/Spinner';
 
 const ChatWindow = ({ conversacion, onNewMessage }) => {
     const { user } = useAuth();
@@ -47,6 +47,14 @@ const ChatWindow = ({ conversacion, onNewMessage }) => {
     const [isConnected, setIsConnected] = useState(false);
     const messagesEndRef = useRef(null);
     const echoChannelRef = useRef(null);
+    const messagesContainerRef = useRef(null);
+
+    // Auto-scroll to bottom when new messages arrive
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [mensajes]);
 
     useEffect(() => {
         if (conversacion) {
@@ -207,14 +215,14 @@ const ChatWindow = ({ conversacion, onNewMessage }) => {
     if (!conversacion) {
         return (
             <div className="flex-1 flex items-center justify-center bg-background-light dark:bg-primary-dark">
-                <div className="text-center">
-                    <svg className="mx-auto h-16 w-16 text-text-secondary mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="text-center p-8">
+                    <svg className="mx-auto h-16 w-16 text-text-secondary dark:text-text-secondary mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                     </svg>
                     <h3 className="text-lg font-medium text-text-dark dark:text-text-light mb-2">
                         Selecciona una conversación
                     </h3>
-                    <p className="text-text-secondary">
+                    <p className="text-text-secondary dark:text-text-secondary text-sm">
                         Elige una conversación de la lista para empezar a chatear
                     </p>
                 </div>
@@ -230,49 +238,57 @@ const ChatWindow = ({ conversacion, onNewMessage }) => {
         conversacion: conversacion.id,
         mensajesCount: mensajes.length,
         loading,
-        mensajes: mensajes.slice(0, 3) 
+        mensajes: mensajes.slice(0, 3)
     });
 
     return (
-        <div className="flex-1 flex flex-col bg-background-light dark:bg-primary-dark">
-            {/* Header del chat */}
-            <div className="bg-primary-light dark:bg-secondary-dark border-b border-secondary-light dark:border-secondary-dark p-4">
+        <div className="flex-1 flex flex-col bg-background-light dark:bg-primary-dark h-full">
+            {/* Header del chat - más compacto en móvil */}
+            <div className="bg-primary-light dark:bg-secondary-dark border-b border-secondary-light dark:border-secondary-dark p-3 lg:p-4 flex-shrink-0">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <span className="text-sm font-medium text-primary">
+                    <div className="flex items-center space-x-3 min-w-0 flex-1">
+                        <div className="h-8 w-8 lg:h-10 lg:w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <span className="text-xs lg:text-sm font-medium text-primary">
                                 {otherUser.nombre.charAt(0).toUpperCase()}
                             </span>
                         </div>
-                        <div>
-                            <h3 className="text-lg font-medium text-text-dark dark:text-text-light">
+                        <div className="min-w-0 flex-1">
+                            <h3 className="text-sm lg:text-lg font-medium text-text-dark dark:text-text-light truncate">
                                 {otherUser.nombre}
                             </h3>
-                            <p className="text-sm text-text-secondary">
+                            <p className="text-xs lg:text-sm text-text-secondary dark:text-text-secondary truncate">
                                 {conversacion.coche.marca.nombre} {conversacion.coche.modelo.nombre}
                             </p>
                         </div>
                     </div>
 
                     {/* Indicador de conexión */}
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 flex-shrink-0">
                         <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-success' : 'bg-error'}`}></div>
-                        <span className="text-xs text-text-secondary">
+                        <span className="text-xs text-text-secondary dark:text-text-secondary hidden sm:inline">
                             {isConnected ? 'Conectado' : 'Desconectado'}
                         </span>
                     </div>
                 </div>
             </div>
 
-            {/* Área de mensajes */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
+            {/* Área de mensajes - scrollable */}
+            <div
+                ref={messagesContainerRef}
+                className="flex-1 overflow-y-auto p-3 lg:p-4 space-y-3 lg:space-y-4 min-h-0"
+            >
                 {loading ? (
-                    <div className="flex justify-center">
+                    <div className="flex justify-center items-center h-full">
                         <Spinner />
                     </div>
                 ) : mensajes.length === 0 ? (
                     <div className="text-center py-8">
-                        <p className="text-text-secondary">
+                        <div className="mb-4">
+                            <svg className="mx-auto h-12 w-12 text-text-secondary dark:text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                            </svg>
+                        </div>
+                        <p className="text-text-secondary dark:text-text-secondary text-sm">
                             No hay mensajes aún. ¡Envía el primero!
                         </p>
                     </div>
@@ -293,20 +309,33 @@ const ChatWindow = ({ conversacion, onNewMessage }) => {
                                 key={mensaje.id}
                                 className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
                             >
-                                <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${isOwn
-                                    ? 'bg-primary text-white'
-                                    : 'bg-secondary-light dark:bg-secondary-dark text-text-dark dark:text-text-light'
+                                <div className={`max-w-[85%] sm:max-w-xs lg:max-w-md px-3 py-2 rounded-lg break-words ${isOwn
+                                    ? 'bg-primary text-white rounded-br-sm'
+                                    : 'bg-secondary-light dark:bg-secondary-dark text-text-dark dark:text-text-light rounded-bl-sm'
                                     }`}>
-                                    <p className="text-sm">{mensaje.contenido}</p>
-                                    <p className={`text-xs mt-1 ${isOwn
+                                    <p className="text-sm leading-relaxed">{mensaje.contenido}</p>
+                                    <div className={`flex items-center justify-between mt-1 text-xs ${isOwn
                                         ? 'text-white/70'
-                                        : 'text-text-secondary'
+                                        : 'text-text-secondary dark:text-text-secondary'
                                         }`}>
-                                        {formatDate(mensaje.created_at)}
+                                        <span>{formatDate(mensaje.created_at)}</span>
+                                        {isOwn && (
+                                            <span className="ml-2">
+                                                {mensaje.leido ? (
+                                                    <svg className="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                    </svg>
+                                                ) : (
+                                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                    </svg>
+                                                )}
+                                            </span>
+                                        )}
                                         {!mensaje.leido && !isOwn && (
                                             <span className="ml-2">📩</span>
                                         )}
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
                         );
@@ -315,44 +344,59 @@ const ChatWindow = ({ conversacion, onNewMessage }) => {
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Input para nuevo mensaje */}
-            <div className="border-t border-secondary-light dark:border-secondary-dark p-4">
+            {/* Input para nuevo mensaje - más compacto en móvil */}
+            <div className="border-t border-secondary-light dark:border-secondary-dark p-3 lg:p-4 flex-shrink-0">
                 <form onSubmit={handleSendMessage} className="flex space-x-2">
-                    <input
-                        type="text"
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Escribe un mensaje..."
-                        className="flex-1 px-4 py-2 border border-secondary-light dark:border-secondary-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-secondary-dark text-text-dark dark:text-text-light"
-                        disabled={sending}
-                        maxLength={1000}
-                    />
+                    <div className="flex-1 relative">
+                        <textarea
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            placeholder="Escribe un mensaje..."
+                            className="w-full px-3 py-2 border border-secondary-light dark:border-secondary-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-secondary-dark text-text-dark dark:text-text-light resize-none"
+                            disabled={sending}
+                            maxLength={1000}
+                            rows={1}
+                            style={{ minHeight: '40px', maxHeight: '120px' }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSendMessage(e);
+                                }
+                            }}
+                        />
+                        <div className="absolute bottom-1 right-1 text-xs text-text-secondary dark:text-text-secondary">
+                            {newMessage.length}/1000
+                        </div>
+                    </div>
                     <Button
                         type="submit"
                         disabled={!newMessage.trim() || sending}
                         isLoading={sending}
-                        className="px-4 py-2"
+                        className="px-3 py-2 lg:px-4 lg:py-2 flex-shrink-0"
+                        variant="primary"
                     >
                         {sending ? (
                             <Spinner />
                         ) : (
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                             </svg>
                         )}
                     </Button>
                 </form>
 
-                {/* Indicador de estado */}
+                {/* Indicadores de estado */}
                 <div className="flex justify-between items-center mt-2">
-                    <span className="text-xs text-text-secondary">
-                        {newMessage.length}/1000
+                    <span className="text-xs text-text-secondary dark:text-text-secondary">
+                        {!isConnected && (
+                            <span className="text-warning">
+                                ⚠️ Conexión perdida - Los mensajes pueden no llegar en tiempo real
+                            </span>
+                        )}
                     </span>
-                    {!isConnected && (
-                        <span className="text-xs text-warning">
-                            Conexión perdida - Los mensajes pueden no llegar en tiempo real
-                        </span>
-                    )}
+                    <span className="text-xs text-text-secondary dark:text-text-secondary">
+                        Presiona Enter para enviar, Shift+Enter para nueva línea
+                    </span>
                 </div>
             </div>
         </div>
